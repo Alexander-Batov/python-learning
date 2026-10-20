@@ -90,7 +90,9 @@ App.screens.cycle = (() => {
     function renderCalendar() {
         const cycle = App.state.cycle;
         const now = new Date();
-        const title = now.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+        // ru-RU даёт «октябрь 2026 г.» строчными — капитализируем первую букву
+        const titleRaw = now.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+        const title = titleRaw.charAt(0).toUpperCase() + titleRaw.slice(1);
         const weeks = CycleMath.buildCalendarMonth(
             now.getFullYear(), now.getMonth(),
             cycle.cycle_start, cycle.cycle_length, cycle.period_length,
@@ -110,7 +112,7 @@ App.screens.cycle = (() => {
         return `
         <section class="card">
             <div class="card-title-row">
-                <h2 style="text-transform:capitalize">${title}</h2>
+                <h2>${title}</h2>
             </div>
             <div class="calendar-weekdays">${names.map((n) => `<span>${n}</span>`).join('')}</div>
             <div class="calendar-grid">${cells}</div>

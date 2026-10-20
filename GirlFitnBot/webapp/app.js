@@ -1,6 +1,26 @@
 // Ядро мини-аппа: состояние, API-клиент, навигация, модалки, бутстрап.
 // Экраны живут в screens/*.js и регистрируются в App.screens.
 
+// DEV-ONLY обход для локальных скриншотов и проверок вне Telegram: на localhost
+// подставляем минимальный shim WebApp, если в URL есть ?initData=.
+// Официальный скрипт Telegram вне WebView создаёт WebApp с ПУСТЫМ initData —
+// поэтому на localhost перекрываем его. Безопасность API не меняется:
+// сервер всё равно валидирует HMAC-подпись, подделать initData на проде
+// это не позволяет (условие localhost обязательно).
+(function devShim() {
+    const params = new URLSearchParams(location.search);
+    const local = ['localhost', '127.0.0.1'].includes(location.hostname);
+    if (local && params.get('initData')) {
+        window.Telegram = { WebApp: {
+            initData: params.get('initData'),
+            initDataUnsafe: { user: { first_name: 'Екатерина' } },
+            themeParams: {},
+            colorScheme: 'light',
+            ready() {}, expand() {}, close() {}, sendData() {},
+        } };
+    }
+})();
+
 // Вне Telegram (обычный браузер) объекта WebApp нет — приложение покажет
 // экран-подсказку, весь Telegram-зависимый код исполнится только при наличии tg
 const tg = window.Telegram && window.Telegram.WebApp;
@@ -365,6 +385,11 @@ async function enterApp() {
     el('today-avatar').addEventListener('click', () => showMain('profile'));
     setNavVisible(true);
     showScreen('today');
+    // DEV-ONLY: глубокая ссылка ?screen=<имя> для локальных скриншотов/проверок
+    const devScreen = new URLSearchParams(location.search).get('screen');
+    if (devScreen && MAIN_SCREENS.includes(devScreen)) {
+        showScreen(devScreen);
+    }
 }
 
 function renderErrorScreen() {

@@ -10,6 +10,12 @@ venv/
 # База данных пользователей
 users.db
 smoke_*.db
+shot*.db
+
+# Скриншоты и профили браузера для локальной сверки
+shots/
+chrome-*-profile/
+chrome-tmp*/
 
 # Логи и временное
 *.log

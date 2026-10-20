@@ -965,11 +965,13 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 
 .workout-thumb svg { width: 26px; height: 26px; stroke-width: 1.6; }
 
-.workout-thumb.t-strength { background: linear-gradient(135deg, #9F4B2D, #B95632); }
-.workout-thumb.t-cardio { background: linear-gradient(135deg, #B95632, #D58A5E); }
-.workout-thumb.t-yoga { background: linear-gradient(135deg, #65664A, #858568); }
-.workout-thumb.t-stretching { background: linear-gradient(135deg, #858568, #B99470); }
-.workout-thumb.t-recovery { background: linear-gradient(135deg, #B99470, #D9C4A3); }
+/* Превью категорий — тёплые нейтральные градиенты (осветление:
+   крупных терракотовых заливок в каталоге нет) */
+.workout-thumb.t-strength { background: linear-gradient(135deg, #B99470, #D9C4A3); }
+.workout-thumb.t-cardio { background: linear-gradient(135deg, #C98B62, #E9B18F); }
+.workout-thumb.t-yoga { background: linear-gradient(135deg, #858568, #A9B388); }
+.workout-thumb.t-stretching { background: linear-gradient(135deg, #A9B388, #D9C4A3); }
+.workout-thumb.t-recovery { background: linear-gradient(135deg, #D9C4A3, #EEE5D8); }
 
 .workout-card-info {
     flex: 1;
