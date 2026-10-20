@@ -168,7 +168,7 @@ async function refreshAll() {
 }
 
 // --- Навигация ---
-const MAIN_SCREENS = ['today', 'cycle', 'activity', 'nutrition', 'profile'];
+const MAIN_SCREENS = ['today', 'cycle', 'activity', 'nutrition', 'habits', 'profile'];
 let lastMainScreen = 'today';
 
 function showScreen(name) {

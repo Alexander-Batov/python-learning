@@ -32,7 +32,6 @@ App.screens.profile = (() => {
             renderGoals(),
             renderProgress(),
             renderRegularity(),
-            renderHabits(),
             renderSubscription(),
             renderMenu(),
             renderExperts(),
@@ -152,14 +151,6 @@ App.screens.profile = (() => {
             </div>` : ''}
             <p class="subtitle" style="font-style:italic;">${cc.regularity_cheer} 💛</p>
         </section>`;
-    }
-
-    function renderHabits() {
-        return '<div id="profile-habits" class="section-gap"></div>';
-    }
-
-    function refreshHabits() {
-        App.screens.habits.renderBlock('profile-habits');
     }
 
     function renderSubscription() {
@@ -493,8 +484,7 @@ App.screens.profile = (() => {
         el('pf-settings').addEventListener('click', openSettings);
         el('pf-help').addEventListener('click', openFaq);
         bindLegalRows('profile-content');
-        refreshHabits();
     }
 
-    return { onShow, openStats, refreshHabits };
+    return { onShow, openStats };
 })();

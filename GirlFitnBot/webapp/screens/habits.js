@@ -6,6 +6,13 @@
 App.screens.habits = (() => {
     let habitsCache = null;
     let progressCache = null;
+    let currentContainer = null;
+
+    async function onShow() {
+        el('habits-subtitle').textContent =
+            App.state.content.habits_screen.subtitle || '';
+        await renderBlock('habits-content');
+    }
 
     async function load() {
         const now = new Date();
@@ -16,9 +23,11 @@ App.screens.habits = (() => {
         ]);
     }
 
-    // Блок для экрана «Профиль»
+    // Блок рендерится либо в собственный экран «Привычки», либо (исторически)
+    // в контейнер профиля — контейнер запоминаем, чтобы обновлять правильный
     async function renderBlock(containerId) {
         const c = App.state.content.habits_screen;
+        currentContainer = containerId;
         try {
             await load();
         } catch (err) {
@@ -296,9 +305,7 @@ App.screens.habits = (() => {
                     });
                     await load();
                     goBack();
-                    if (App.screens.profile && App.screens.profile.refreshHabits) {
-                        App.screens.profile.refreshHabits();
-                    }
+                    if (currentContainer) renderInto(currentContainer);
                 } catch (err) {
                     btn.disabled = false;
                     el('ha-msg').textContent = apiErrorText(err);
@@ -307,5 +314,5 @@ App.screens.habits = (() => {
         }
     }
 
-    return { renderBlock, openAdd, load };
+    return { renderBlock, openAdd, load, onShow };
 })();
