@@ -175,6 +175,23 @@ App.screens.profile = (() => {
         const cc = c();
         return `
         <section class="card">
+            <h3>Твой путь к себе</h3>
+            <div class="menu-list">
+                <button class="menu-row" id="pf-levels">
+                    <span>🌱 Уровни</span><span class="menu-chevron">›</span>
+                </button>
+                <button class="menu-row" id="pf-achievements">
+                    <span>🏵 Достижения</span><span class="menu-chevron">›</span>
+                </button>
+                <button class="menu-row" id="pf-rewards">
+                    <span>🎁 Мои призы</span><span class="menu-chevron">›</span>
+                </button>
+                <button class="menu-row" id="pf-reminders">
+                    <span>🔔 Напоминания</span><span class="menu-chevron">›</span>
+                </button>
+            </div>
+        </section>
+        <section class="card">
             <div class="menu-list">
                 <button class="menu-row" id="pf-settings">
                     <span>⚙️ ${cc.settings_title}</span><span class="menu-chevron">›</span>
@@ -481,10 +498,14 @@ App.screens.profile = (() => {
             const cc = c();
             infoSheet(`${cc.premium_cta} · ${cc.premium_price}`, cc.premium_text);
         });
+        el('pf-levels').addEventListener('click', () => showScreen('levels'));
+        el('pf-achievements').addEventListener('click', () => showScreen('achievements'));
+        el('pf-rewards').addEventListener('click', () => showScreen('rewards'));
+        el('pf-reminders').addEventListener('click', () => showScreen('reminders'));
         el('pf-settings').addEventListener('click', openSettings);
         el('pf-help').addEventListener('click', openFaq);
         bindLegalRows('profile-content');
     }
 
-    return { onShow, openStats };
+    return { onShow, openStats, openEditGoals };
 })();

@@ -387,7 +387,7 @@ async function enterApp() {
     showScreen('today');
     // DEV-ONLY: глубокая ссылка ?screen=<имя> для локальных скриншотов/проверок
     const devScreen = new URLSearchParams(location.search).get('screen');
-    if (devScreen && MAIN_SCREENS.includes(devScreen)) {
+    if (devScreen && document.getElementById(`screen-${devScreen}`)) {
         showScreen(devScreen);
     }
 }

@@ -133,6 +133,46 @@
         <div id="legal-content" class="stack"></div>
     </main>
 
+    <!-- ===== Подэкран: уровни ===== -->
+    <main id="screen-levels" class="screen hidden">
+        <button class="back-button" data-back>← Назад</button>
+        <header class="page-header">
+            <h1>Уровни</h1>
+            <p id="levels-subtitle" class="subtitle"></p>
+        </header>
+        <div id="levels-content" class="stack"></div>
+    </main>
+
+    <!-- ===== Подэкран: достижения ===== -->
+    <main id="screen-achievements" class="screen hidden">
+        <button class="back-button" data-back>← Назад</button>
+        <header class="page-header">
+            <h1>Достижения</h1>
+            <p id="achievements-subtitle" class="subtitle"></p>
+        </header>
+        <div id="achievements-content" class="stack"></div>
+    </main>
+
+    <!-- ===== Подэкран: мои призы ===== -->
+    <main id="screen-rewards" class="screen hidden">
+        <button class="back-button" data-back>← Назад</button>
+        <header class="page-header">
+            <h1>Мои призы</h1>
+            <p id="rewards-subtitle" class="subtitle"></p>
+        </header>
+        <div id="rewards-content" class="stack"></div>
+    </main>
+
+    <!-- ===== Подэкран: напоминания ===== -->
+    <main id="screen-reminders" class="screen hidden">
+        <button class="back-button" data-back>← Назад</button>
+        <header class="page-header">
+            <h1>Напоминания</h1>
+            <p id="reminders-subtitle" class="subtitle"></p>
+        </header>
+        <div id="reminders-content" class="stack"></div>
+    </main>
+
     <!-- ===== Экран «открыто вне Telegram» ===== -->
     <main id="screen-notg" class="screen hidden">
         <section class="card notg-card">
@@ -179,6 +219,7 @@
 
     <script src="cycle.js"></script>
     <script src="app.js"></script>
+    <script src="gamification.js"></script>
     <script src="onboarding.js"></script>
     <script src="screens/today.js"></script>
     <script src="screens/cycle.js"></script>
@@ -186,5 +227,9 @@
     <script src="screens/nutrition.js"></script>
     <script src="screens/habits.js"></script>
     <script src="screens/profile.js"></script>
+    <script src="screens/levels.js"></script>
+    <script src="screens/achievements.js"></script>
+    <script src="screens/rewards.js"></script>
+    <script src="screens/reminders.js"></script>
 </body>
 </html>

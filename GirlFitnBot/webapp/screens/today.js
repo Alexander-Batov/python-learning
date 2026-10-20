@@ -46,6 +46,7 @@ App.screens.today = (() => {
             return;
         }
         const parts = [
+            renderLevelBlock(c, t),
             renderCycleCard(c),
             renderPhrase(c),
             renderActivity(c, t),
@@ -56,6 +57,19 @@ App.screens.today = (() => {
         ];
         setHTML('today-content', parts.join(''));
         bindAll(c, t);
+        // Мотивационная система: поздравление с переходом уровня и
+        // мягкая анимация начисленных баллов (лепесток «+N»)
+        if (t.gamification) {
+            Gamification.checkLevelUp(t.gamification.points);
+            Gamification.petalIfIncreased(t.gamification.points);
+        }
+    }
+
+    // --- Карточка уровня + «Твой день заботы» (референс Экран 1) ---
+    function renderLevelBlock(c, t) {
+        const g = t.gamification;
+        if (!g) return '';
+        return Gamification.renderLevelCard(g) + Gamification.renderCareDay(g);
     }
 
     // --- Карточка цикла (самая заметная) ---
@@ -195,12 +209,18 @@ App.screens.today = (() => {
         </section>`;
     }
 
-    // --- Мини-чек-ин (автосохранение) ---
+    // --- Мини-чек-ин (автосохранение) + вода ---
     function renderCheckin(c, t) {
+        const gc = App.state.content.gamification;
         const wb = t.wellbeing;
         const energy = wb ? wb.energy : null;
         const mood = wb ? wb.mood : null;
         const feeling = wb ? wb.feeling : null;
+        const g = t.gamification || { water_glasses: 0, care_day: { water_norm: 8 } };
+        const norm = g.care_day.water_norm || 8;
+        const glasses = g.water_glasses || 0;
+        const drops = Array.from({ length: norm }, (_, i) =>
+            `<span class="water-drop${i < glasses ? ' full' : ''}">💧</span>`).join('');
         const scale = (emojis, value, cls) => emojis.map((e, i) =>
             `<button class="checkin-emoji${value === i + 1 ? ' active' : ''}"
                 data-scale="${cls}" data-value="${i + 1}">${e}</button>`).join('');
@@ -209,6 +229,15 @@ App.screens.today = (() => {
             <div class="card-title-row">
                 <h3>${c.checkin_title}</h3>
                 <span class="text-muted" id="t-checkin-saved">${wb ? c.checkin_saved : ''}</span>
+            </div>
+            <div>
+                <p class="checkin-label">${gc.water_title} ·
+                    <span id="t-water-count">${glasses}</span> ${gc.water_hint.replace('{norm}', norm)}</p>
+                <div class="water-row">
+                    <button class="water-btn" id="t-water-minus" aria-label="Меньше">−</button>
+                    <div class="water-drops" id="t-water-drops">${drops}</div>
+                    <button class="water-btn" id="t-water-plus" aria-label="Больше">＋</button>
+                </div>
             </div>
             <div>
                 <p class="checkin-label">${c.checkin_energy}</p>
@@ -273,6 +302,15 @@ App.screens.today = (() => {
         const nutriBtn = el('t-nutrition-cta');
         if (nutriBtn) nutriBtn.addEventListener('click', () => showMain('nutrition'));
 
+        const levelCard = el('gf-level-card');
+        if (levelCard) levelCard.addEventListener('click', () => showScreen('levels'));
+
+        const waterMinus = el('t-water-minus');
+        if (waterMinus) {
+            waterMinus.addEventListener('click', () => changeWater(c, -1));
+            el('t-water-plus').addEventListener('click', () => changeWater(c, +1));
+        }
+
         const addHabit = el('t-add-habit');
         if (addHabit) addHabit.addEventListener('click', () => App.screens.habits.openAdd());
 
@@ -303,6 +341,28 @@ App.screens.today = (() => {
         document.querySelectorAll('#today-content [data-scale]').forEach((btn) => {
             btn.addEventListener('click', () => saveCheckin(c, btn));
         });
+    }
+
+    async function changeWater(c, delta) {
+        const g = App.state.today.gamification;
+        const norm = (g.care_day && g.care_day.water_norm) || 8;
+        const current = g.water_glasses || 0;
+        const next = Math.max(0, Math.min(norm, current + delta));
+        if (next === current) return;
+        g.water_glasses = next;
+        const drops = el('t-water-drops').querySelectorAll('.water-drop');
+        drops.forEach((d, i) => d.classList.toggle('full', i < next));
+        el('t-water-count').textContent = String(next);
+        try {
+            const res = await apiPost('/api/water', { date: todayISO(), glasses: next });
+            g.care_day.water = res.glasses >= res.norm;
+        } catch (err) {
+            g.water_glasses = current;
+            drops.forEach((d, i) => d.classList.toggle('full', i < current));
+            el('t-water-count').textContent = String(current);
+            const savedEl = el('t-checkin-saved');
+            if (savedEl) savedEl.textContent = `Не сохранилось: ${apiErrorText(err)}`;
+        }
     }
 
     async function saveCheckin(c, clicked) {
