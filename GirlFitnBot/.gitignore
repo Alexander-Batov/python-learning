@@ -1,0 +1,19 @@
+# Секреты
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# База данных пользователей
+users.db
+smoke_*.db
+
+# Логи и временное
+*.log
+
+# IDE
+.idea/
+.vscode/

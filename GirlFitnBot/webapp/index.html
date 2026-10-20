@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <!-- Обязательный viewport для корректного отображения внутри Telegram -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>GirlFit — забота о себе по фазам цикла</title>
+    <!-- Заглушка favicon, чтобы браузер не запрашивал /favicon.ico (404 в логах) -->
+    <link rel="icon" href="data:,">
+    <!-- Скрипт Telegram: открывает объект Telegram.WebApp для JS -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ===== Сегодня (главный) ===== -->
+    <main id="screen-today" class="screen">
+        <header class="page-header flex-between">
+            <div>
+                <h1 id="today-greeting">Привет!</h1>
+                <p id="today-date" class="subtitle"></p>
+            </div>
+            <button class="profile-avatar" id="today-avatar" aria-label="Профиль" style="width:44px;height:44px;font-size:18px;border:1px solid var(--border);cursor:pointer;"></button>
+        </header>
+        <div id="today-content" class="section-gap"><!-- рендерит screens/today.js --></div>
+    </main>
+
+    <!-- ===== Цикл ===== -->
+    <main id="screen-cycle" class="screen hidden">
+        <header class="page-header">
+            <h1 id="cycle-title">Твой цикл</h1>
+            <p id="cycle-status" class="subtitle">Загружаю данные цикла…</p>
+        </header>
+        <div id="cycle-content" class="section-gap"><!-- рендерит screens/cycle.js --></div>
+    </main>
+
+    <!-- ===== Активность ===== -->
+    <main id="screen-activity" class="screen hidden">
+        <header class="page-header">
+            <h1>Активность</h1>
+            <p id="activity-subtitle" class="subtitle"></p>
+        </header>
+        <div id="activity-content" class="section-gap"><!-- рендерит screens/activity.js --></div>
+    </main>
+
+    <!-- ===== Питание ===== -->
+    <main id="screen-nutrition" class="screen hidden">
+        <header class="page-header flex-between">
+            <div>
+                <h1>Питание</h1>
+                <p id="nutrition-subtitle" class="subtitle"></p>
+            </div>
+            <button id="nutrition-info" class="back-button" style="align-self:flex-start" aria-label="Дисклеймер">ⓘ</button>
+        </header>
+        <div id="nutrition-content" class="section-gap"><!-- рендерит screens/nutrition.js --></div>
+    </main>
+
+    <!-- ===== Профиль ===== -->
+    <main id="screen-profile" class="screen hidden">
+        <header class="page-header">
+            <h1 id="profile-title">Профиль</h1>
+        </header>
+        <div id="profile-content" class="section-gap"><!-- рендерит screens/profile.js --></div>
+    </main>
+
+    <!-- ===== Подэкран: страница фазы ===== -->
+    <main id="screen-phase" class="screen hidden">
+        <button class="back-button" data-back>← Назад</button>
+        <header id="phase-header" class="phase-header"></header>
+        <section id="phase-sections" class="stack"></section>
+    </main>
+
+    <!-- ===== Подэкран: карточка дня цикла ===== -->
+    <main id="screen-day" class="screen hidden">
+        <button class="back-button" data-back>← Назад</button>
+        <div id="day-card" class="stack"></div>
+    </main>
+
+    <!-- ===== Подэкран: тренировка (до/во время/после) ===== -->
+    <main id="screen-workout" class="screen hidden">
+        <button class="back-button" data-back id="workout-back">← Назад</button>
+        <div id="workout-player" class="stack"></div>
+    </main>
+
+    <!-- ===== Подэкран: рецепт ===== -->
+    <main id="screen-recipe" class="screen hidden">
+        <button class="back-button" data-back>← Назад</button>
+        <div id="recipe-card" class="stack"></div>
+    </main>
+
+    <!-- ===== Подэкран: конструктор тарелки ===== -->
+    <main id="screen-plate" class="screen hidden">
+        <button class="back-button" data-back>← Назад</button>
+        <div id="plate-builder" class="stack"></div>
+    </main>
+
+    <!-- ===== Подэкран: добавить привычку ===== -->
+    <main id="screen-habit-add" class="screen hidden">
+        <button class="back-button" data-back>← Назад</button>
+        <div id="habit-add-content" class="stack"></div>
+    </main>
+
+    <!-- ===== Подэкран: прогресс/статистика ===== -->
+    <main id="screen-stats" class="screen hidden">
+        <button class="back-button" data-back>← Назад</button>
+        <div id="stats-content" class="stack"></div>
+    </main>
+
+    <!-- ===== Подэкран: настройки ===== -->
+    <main id="screen-settings" class="screen hidden">
+        <button class="back-button" data-back>← Назад</button>
+        <div id="settings-content" class="stack"></div>
+    </main>
+
+    <!-- ===== Подэкран: FAQ ===== -->
+    <main id="screen-faq" class="screen hidden">
+        <button class="back-button" data-back>← Назад</button>
+        <div id="faq-content" class="stack"></div>
+    </main>
+
+    <!-- ===== Подэкран: юридический документ ===== -->
+    <main id="screen-legal" class="screen hidden">
+        <button class="back-button" data-back>← Назад</button>
+        <div id="legal-content" class="stack"></div>
+    </main>
+
+    <!-- ===== Экран «открыто вне Telegram» ===== -->
+    <main id="screen-notg" class="screen hidden">
+        <section class="card notg-card">
+            <h1>Это приложение живёт внутри Telegram</h1>
+            <p class="subtitle">Откройте его через нашего бота: перейдите в чат
+            с ботом и нажмите кнопку «🌸 Открыть приложение» — тогда всё
+            заработает, а данные сохранятся в вашем личном кабинете.</p>
+        </section>
+    </main>
+
+    <!-- ===== Onboarding (5 шагов) ===== -->
+    <div id="onboarding" class="onboarding-overlay hidden"></div>
+
+    <!-- ===== Модальные окна ===== -->
+    <div id="modal-root"></div>
+
+    <!-- Нижняя навигация: 5 разделов, fixed + safe-area -->
+    <nav class="bottom-nav" id="bottom-nav">
+        <button class="nav-item active" data-nav="today">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            <span>Сегодня</span>
+        </button>
+        <button class="nav-item" data-nav="cycle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none" opacity="0.25"/><circle cx="12" cy="12" r="2.5"/></svg>
+            <span>Цикл</span>
+        </button>
+        <button class="nav-item" data-nav="activity">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.28"/></svg>
+            <span>Активность</span>
+        </button>
+        <button class="nav-item" data-nav="nutrition">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/></svg>
+            <span>Питание</span>
+        </button>
+        <button class="nav-item" data-nav="profile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Профиль</span>
+        </button>
+    </nav>
+
+    <script src="cycle.js"></script>
+    <script src="app.js"></script>
+    <script src="onboarding.js"></script>
+    <script src="screens/today.js"></script>
+    <script src="screens/cycle.js"></script>
+    <script src="screens/activity.js"></script>
+    <script src="screens/nutrition.js"></script>
+    <script src="screens/habits.js"></script>
+    <script src="screens/profile.js"></script>
+</body>
+</html>
