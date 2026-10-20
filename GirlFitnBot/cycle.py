@@ -3,12 +3,13 @@
 ЗЕРКАЛО webapp/cycle.js: методика фаз описана в двух местах.
 Меняйте схему только здесь и в webapp/cycle.js, остальное подстроится само.
 
-Классическая схема от дня начала месячных для цикла длиной L,
-месячные длятся P дней:
+Схема от дня начала месячных для цикла длиной L,
+месячные длятся P дней (единый источник — см. раздел «Осветление» п.4):
 - Менструальная: дни 1-P
-- Фолликулярная: дни (P+1) - (L-15)
-- Овуляторная: дни (L-14) - (L-12), овуляция примерно в день L-14
+- Фолликулярная: дни (P+1) - (L-14), включая день овуляции (~L-14)
+- Овуляторная: дни (L-13) - (L-12), ~2 дня
 - Лютеиновая: дни (L-11) - L
+Пример L=28, P=5: 1-5 · 6-14 · 15-16 · 17-28
 """
 
 from datetime import date, datetime, timedelta
@@ -71,7 +72,7 @@ def get_phase(
         return PHASE_OVERDUE
     if cycle_day <= period_length:
         return PHASE_MENSTRUAL
-    if cycle_day <= cycle_length - 15:
+    if cycle_day <= cycle_length - 14:
         return PHASE_FOLLICULAR
     if cycle_day <= cycle_length - 12:
         return PHASE_OVULATORY

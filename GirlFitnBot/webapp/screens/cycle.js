@@ -124,16 +124,11 @@ App.screens.cycle = (() => {
     }
 
     // --- Карточка текущей фазы ---
+    // Диапазон дней берём из CycleMath.phaseRanges — единый источник
+    // границ фаз (совпадает с раскраской календаря и серверным cycle.py)
     function phaseDayRange(phaseKey, cycleLength, periodLength) {
-        const P = periodLength || CycleMath.DEFAULT_PERIOD_LENGTH;
-        const L = cycleLength;
-        switch (phaseKey) {
-            case CycleMath.PHASE.MENSTRUAL: return `Дни 1–${P}`;
-            case CycleMath.PHASE.FOLLICULAR: return `Дни ${P + 1}–${L - 15}`;
-            case CycleMath.PHASE.OVULATORY: return `Дни ${L - 14}–${L - 12}`;
-            case CycleMath.PHASE.LUTEAL: return `Дни ${L - 11}–${L}`;
-            default: return '';
-        }
+        const range = CycleMath.phaseRanges(cycleLength, periodLength)[phaseKey];
+        return range ? `Дни ${range[0]}–${range[1]}` : '';
     }
 
     function renderCurrentPhase() {
@@ -167,7 +162,10 @@ App.screens.cycle = (() => {
                                 <p class="habit-title">${p.name}</p>
                                 <p class="text-muted">${p.days}</p>
                             </div>
-                            <span class="legend-dot" style="background:${p.color};width:14px;height:14px;"></span>
+                            <div class="flex-row" style="gap:8px;flex-shrink:0;">
+                                <span class="legend-dot" style="background:${p.color};width:14px;height:14px;"></span>
+                                <span class="link-btn" style="padding:0;">Подробнее →</span>
+                            </div>
                         </div>
                     </button>`).join('')}
             </div>

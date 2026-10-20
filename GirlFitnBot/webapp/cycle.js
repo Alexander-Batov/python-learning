@@ -2,12 +2,13 @@
 // ЗЕРКАЛО cycle.py: методика фаз описана в двух местах.
 // Меняйте схему только здесь и в cycle.py, остальное подстроится само.
 //
-// Классическая схема от дня начала месячных для цикла длиной L,
-// месячные длятся P дней:
+// Схема от дня начала месячных для цикла длиной L,
+// месячные длятся P дней (единый источник — см. раздел «Осветление» п.4):
 // - Менструальная: дни 1-P
-// - Фолликулярная: дни (P+1) - (L-15)
-// - Овуляторная: дни (L-14) - (L-12), овуляция примерно в день L-14
+// - Фолликулярная: дни (P+1) - (L-14), включая день овуляции (~L-14)
+// - Овуляторная: дни (L-13) - (L-12), ~2 дня
 // - Лютеиновая: дни (L-11) - L
+// Пример L=28, P=5: 1-5 · 6-14 · 15-16 · 17-28
 
 const CycleMath = (() => {
     const PHASE = {
@@ -64,9 +65,22 @@ const CycleMath = (() => {
         const period = periodLength || DEFAULT_PERIOD_LENGTH;
         if (cycleDay > cycleLength) return PHASE.OVERDUE;
         if (cycleDay <= period) return PHASE.MENSTRUAL;
-        if (cycleDay <= cycleLength - 15) return PHASE.FOLLICULAR;
+        if (cycleDay <= cycleLength - 14) return PHASE.FOLLICULAR;
         if (cycleDay <= cycleLength - 12) return PHASE.OVULATORY;
         return PHASE.LUTEAL;
+    }
+
+    // Диапазоны дней фаз — единый источник для карточек и подписей в UI.
+    // Должен сходиться с getPhase: границы здесь и в ветвлении выше — одни.
+    function phaseRanges(cycleLength, periodLength) {
+        const P = periodLength || DEFAULT_PERIOD_LENGTH;
+        const L = cycleLength;
+        return {
+            [PHASE.MENSTRUAL]: [1, P],
+            [PHASE.FOLLICULAR]: [P + 1, L - 14],
+            [PHASE.OVULATORY]: [L - 13, L - 12],
+            [PHASE.LUTEAL]: [L - 11, L],
+        };
     }
 
     // Фаза для конкретной даты (для раскраски календаря и карточки дня)
@@ -135,5 +149,6 @@ const CycleMath = (() => {
         getPhaseForDate,
         getNextPeriodDate,
         buildCalendarMonth,
+        phaseRanges,
     };
 })();
