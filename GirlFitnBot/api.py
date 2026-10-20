@@ -19,6 +19,7 @@ from aiohttp import web
 
 import cycle
 import db
+import gamification
 from config import config
 from handlers.onboarding import (
     DEFAULT_CYCLE_LENGTH,
@@ -303,6 +304,7 @@ async def today_api_handler(request: web.Request) -> web.Response:
         "nutrition": dict(nutrition) if nutrition else None,
         "habits": habits,
         "progress": {"done": done_count, "total": total},
+        "gamification": gamification.gamification_summary(user_id, day),
     })
 
 
@@ -365,6 +367,9 @@ async def wellbeing_handler(request: web.Request) -> web.Response:
     except ValueError as exc:
         return _err(str(exc))
     db.save_wellbeing(user_id, day, energy, mood, feeling)
+    gamification.award_points(user_id, "checkin", day=day)
+    gamification.check_day_bonus(user_id, day)
+    gamification.check_achievements(user_id)
     return web.json_response(
         {"date": day, "energy": energy, "mood": mood, "feeling": feeling}
     )
@@ -507,6 +512,10 @@ async def workout_complete_handler(request: web.Request) -> web.Response:
         return _err("тренировка не найдена", 404)
     day = _client_date(request, payload)
     db.complete_workout(user_id, workout_id, day, workout["duration_min"])
+    # Баллы «лепестки заботы»: начисление и проверка достижений после отметки
+    gamification.award_points(user_id, "workout", workout_id, day)
+    gamification.check_day_bonus(user_id, day)
+    gamification.check_achievements(user_id)
     return web.json_response(
         {"date": day, "workout_id": workout_id, "completed": True,
          "minutes": workout["duration_min"]}
@@ -571,6 +580,11 @@ async def nutrition_handler(request: web.Request) -> web.Response:
         else:
             meals[meal] = 1 if value else 0
     db.save_nutrition(user_id, day, **meals)
+    # +15, когда день отмечен полностью (все четыре приёма)
+    if all(meals[m] for m in db.MEALS):
+        gamification.award_points(user_id, "nutrition", day=day)
+    gamification.check_day_bonus(user_id, day)
+    gamification.check_achievements(user_id)
     return web.json_response({"date": day, "meals": meals})
 
 
@@ -640,6 +654,12 @@ async def habit_toggle_handler(request: web.Request) -> web.Response:
         done = db.toggle_habit_completion(user_id, uh_id, day)
     except ValueError as exc:
         return _err(str(exc), 404)
+    if done:
+        # Баллы начисляются, но снятие отметки их НЕ списывает —
+        # прогресс не обнуляется (правило мотивационной системы)
+        gamification.award_points(user_id, "habit", uh_id, day)
+        gamification.check_day_bonus(user_id, day)
+        gamification.check_achievements(user_id)
     return web.json_response({"date": day, "done": done})
 
 
@@ -768,6 +788,154 @@ async def progress_api_handler(request: web.Request) -> web.Response:
     })
 
 
+# --- Мотивационная система «Твой путь к себе» ---
+
+async def water_handler(request: web.Request) -> web.Response:
+    """GET/POST /api/water — стаканы воды за день (0–16).
+
+    Норма за день → +10 «лепестков заботы» (начисляется один раз).
+    """
+    user_id = await _user_id(request)
+    if user_id is None:
+        return _err("invalid initData", 401)
+
+    if request.method == "GET":
+        day = _client_date(request)
+        return web.json_response(
+            {"date": day, "glasses": gamification.get_water(user_id, day),
+             "norm": gamification.WATER_NORM_GLASSES}
+        )
+
+    try:
+        payload = await _json_payload(request)
+    except ValueError as exc:
+        return _err(str(exc))
+    day = _client_date(request, payload)
+    try:
+        glasses = _parse_int(payload.get("glasses"), 0, 16, "glasses")
+    except ValueError as exc:
+        return _err(str(exc))
+    saved = gamification.save_water(user_id, day, glasses)
+    if saved >= gamification.WATER_NORM_GLASSES:
+        gamification.award_points(user_id, "water", day=day)
+        gamification.check_achievements(user_id)
+    gamification.check_day_bonus(user_id, day)
+    return web.json_response(
+        {"date": day, "glasses": saved, "norm": gamification.WATER_NORM_GLASSES}
+    )
+
+
+async def levels_api_handler(request: web.Request) -> web.Response:
+    """GET /api/levels — 5 уровней с состоянием (пройден/текущий/будущий)."""
+    user_id = await _user_id(request)
+    if user_id is None:
+        return _err("invalid initData", 401)
+    points = gamification.points_payload(user_id)
+    current_num = points["level"]["num"]
+    levels = []
+    for level in gamification.LEVELS:
+        state = ("current" if level["num"] == current_num
+                 else "done" if level["num"] < current_num else "future")
+        levels.append({**level, "state": state})
+    return web.json_response({"levels": levels, "points": points})
+
+
+async def achievements_api_handler(request: web.Request) -> web.Response:
+    """GET /api/achievements — каталог с флагами, прогрессом и ближайшим."""
+    user_id = await _user_id(request)
+    if user_id is None:
+        return _err("invalid initData", 401)
+    return web.json_response(gamification.achievements_payload(user_id))
+
+
+async def rewards_handler(request: web.Request) -> web.Response:
+    """GET /api/rewards — каталог призов с балансом."""
+    user_id = await _user_id(request)
+    if user_id is None:
+        return _err("invalid initData", 401)
+    return web.json_response(gamification.rewards_payload(user_id))
+
+
+async def reward_exchange_handler(request: web.Request) -> web.Response:
+    """POST /api/rewards/{id}/exchange — обмен баллов (уровень не понижает)."""
+    user_id = await _user_id(request)
+    if user_id is None:
+        return _err("invalid initData", 401)
+    reward_id = request.match_info["id"]
+    try:
+        result = gamification.exchange_reward(user_id, reward_id)
+    except ValueError as exc:
+        text = str(exc)
+        status = 409 if "уже получен" in text else 400
+        return _err(text, status)
+    gamification.check_achievements(user_id)
+    return web.json_response(result)
+
+
+async def reminders_handler(request: web.Request) -> web.Response:
+    """GET/POST /api/reminders — список и добавление напоминания."""
+    user_id = await _user_id(request)
+    if user_id is None:
+        return _err("invalid initData", 401)
+
+    if request.method == "GET":
+        return web.json_response({
+            "types": gamification.REMINDER_TYPES,
+            "items": gamification.get_reminders(user_id),
+        })
+
+    try:
+        payload = await _json_payload(request)
+    except ValueError as exc:
+        return _err(str(exc))
+    rtype = str(payload.get("type", ""))
+    time_ = str(payload.get("time", "")).strip()[:5]
+    if not _valid_hhmm(time_):
+        return _err("time должен быть в формате HH:MM")
+    try:
+        rid = gamification.upsert_reminder(
+            user_id, rtype, time_,
+            enabled=bool(payload.get("enabled", True)),
+            days=str(payload.get("days", "daily"))[:32],
+        )
+    except ValueError as exc:
+        return _err(str(exc))
+    return web.json_response({"id": rid, "ok": True})
+
+
+async def reminder_patch_handler(request: web.Request) -> web.Response:
+    """PATCH/DELETE /api/reminders/{id} — вкл/выкл, время, удаление."""
+    user_id = await _user_id(request)
+    if user_id is None:
+        return _err("invalid initData", 401)
+    try:
+        rid = int(request.match_info["id"])
+    except ValueError:
+        return _err("id должен быть числом")
+
+    if request.method == "DELETE":
+        gamification.delete_reminder(user_id, rid)
+        return web.json_response({"id": rid, "deleted": True})
+
+    try:
+        payload = await _json_payload(request)
+    except ValueError as exc:
+        return _err(str(exc))
+    time_ = payload.get("time")
+    if time_ is not None:
+        time_ = str(time_).strip()[:5]
+        if time_ and not _valid_hhmm(time_):
+            return _err("time должен быть в формате HH:MM")
+    enabled = payload.get("enabled")
+    if enabled is not None:
+        enabled = bool(enabled)
+    try:
+        gamification.patch_reminder(user_id, rid, time=time_, enabled=enabled)
+    except ValueError as exc:
+        return _err(str(exc), 404)
+    return web.json_response({"id": rid, "ok": True})
+
+
 # --- Пользователь ---
 
 def _user_profile(row: db.sqlite3.Row) -> dict:
@@ -870,6 +1038,14 @@ def setup_routes(app: web.Application) -> None:
     app.router.add_post("/api/habits/{id}/toggle", habit_toggle_handler)
     app.router.add_patch("/api/habits/{id}", habit_patch_handler)
     app.router.add_get("/api/progress", progress_api_handler)
+    app.router.add_route("*", "/api/water", water_handler)
+    app.router.add_get("/api/levels", levels_api_handler)
+    app.router.add_get("/api/achievements", achievements_api_handler)
+    app.router.add_get("/api/rewards", rewards_handler)
+    app.router.add_post("/api/rewards/{id}/exchange", reward_exchange_handler)
+    app.router.add_route("*", "/api/reminders", reminders_handler)
+    app.router.add_patch("/api/reminders/{id}", reminder_patch_handler)
+    app.router.add_delete("/api/reminders/{id}", reminder_patch_handler)
     app.router.add_get("/api/user", user_api_handler)
     app.router.add_patch("/api/user", user_patch_handler)
     app.router.add_delete("/api/user", user_delete_handler)

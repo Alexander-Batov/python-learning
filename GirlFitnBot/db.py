@@ -222,6 +222,77 @@ def init() -> None:
             """
         )
 
+        # --- Мотивационная система «Твой путь к себе» ---
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_points (
+                tg_id INTEGER PRIMARY KEY,
+                balance INTEGER NOT NULL DEFAULT 0,
+                total_earned INTEGER NOT NULL DEFAULT 0,
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
+        # Идемпотентность начислений: один источник + одна ссылка + один день
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS points_transactions (
+                id INTEGER PRIMARY KEY,
+                tg_id INTEGER NOT NULL,
+                amount INTEGER NOT NULL,
+                source TEXT NOT NULL,
+                ref_id TEXT NOT NULL DEFAULT '-',
+                date TEXT NOT NULL,
+                UNIQUE (tg_id, source, ref_id, date)
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_achievements (
+                tg_id INTEGER NOT NULL,
+                achievement_id TEXT NOT NULL,
+                earned_at TEXT NOT NULL,
+                PRIMARY KEY (tg_id, achievement_id)
+            )
+            """
+        )
+        # price дублируется из каталога на момент обмена (каталог меняется)
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_rewards (
+                id INTEGER PRIMARY KEY,
+                tg_id INTEGER NOT NULL,
+                reward_id TEXT NOT NULL,
+                price INTEGER NOT NULL DEFAULT 0,
+                exchanged_at TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'active'
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS reminders (
+                id INTEGER PRIMARY KEY,
+                tg_id INTEGER NOT NULL,
+                type TEXT NOT NULL,
+                time TEXT NOT NULL,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                days TEXT NOT NULL DEFAULT 'daily'
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS water_logs (
+                tg_id INTEGER NOT NULL,
+                date TEXT NOT NULL,
+                glasses INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (tg_id, date)
+            )
+            """
+        )
+
         _seed_library(conn)
     logger.info("База данных готова: %s", config.db_path)
 
