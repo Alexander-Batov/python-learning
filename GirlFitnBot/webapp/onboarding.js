@@ -35,14 +35,14 @@ const Onboarding = (() => {
         if (step === 0) {
             root.innerHTML = `
                 <div class="onboarding-content">
-                    <div class="onboarding-hero">
+                    <div class="ob-hero-card">
                         ${botanicalSVG()}
                         <h1 class="onboarding-title">${c.greeting_title}</h1>
                         <p class="subtitle">${c.greeting_text}</p>
                     </div>
                 </div>
                 <div class="onboarding-footer">
-                    <button class="btn" id="ob-next">${c.start}</button>
+                    <button class="btn btn-light" id="ob-next">${c.start}</button>
                 </div>`;
             bindNext(() => goto(1));
             return;

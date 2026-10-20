@@ -21,20 +21,20 @@
 }
 
 :root {
-    --background: #F4EDE3;
+    --background: #F7F2E9;          /* молочно-кремовый, светлее прежнего */
     --surface: #FFFCF6;
     --surface-muted: #EEE5D8;
     --surface-warm: #F7F0E6;
-    --border: #E5D8C8;
+    --border: #E5D8C8;              /* разделение контуром — вместо теней */
     --border-soft: #D7CBB9;
     --text-primary: #373723;
     --text-secondary: #706A58;
     --text-muted: #85806E;
-    --accent: #B95632;
+    --accent: #B95632;              /* терракота — только акценты */
     --accent-dark: #8F3D25;
     --accent-light: #E9B18F;
-    --olive: #65664A;
-    --olive-light: #858568;
+    --olive: #65664A;               /* олива — текст, иконки, мелкие акценты */
+    --olive-light: #858568;         /* смягчённая олива — заливки/большие площади */
     --on-accent: #FFF9F1;
     --danger: #A4442E;
 
@@ -46,8 +46,9 @@
     --radius-sm: 12px;
     --radius-pill: 26px;
 
-    --shadow-card: 0 2px 8px rgba(74, 56, 36, 0.05);
-    --shadow-stat: 0 2px 6px rgba(74, 56, 36, 0.04);
+    /* Осветление: тени убраны, карточки разделяются контуром #E5D8C8 */
+    --shadow-card: none;
+    --shadow-stat: none;
 
     --t-fast: 180ms;
     --t-med: 220ms;
@@ -127,7 +128,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     padding: 22px 20px calc(var(--nav-h) + env(safe-area-inset-bottom) + 24px);
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
     animation: screenIn var(--t-med) ease;
     min-height: 100vh;
 }
@@ -228,7 +229,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 }
 
 .btn-olive {
-    background: var(--olive);
+    background: var(--olive-fill);
     color: #FFF9F1;
 }
 
@@ -300,8 +301,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .filter-chip:active { transform: scale(0.97); }
 
 .filter-chip.active {
-    background: var(--olive);
-    border-color: var(--olive);
+    background: var(--olive-fill);
+    border-color: var(--olive-fill);
     color: #FFF9F1;
 }
 
@@ -607,8 +608,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 }
 
 .feeling-btn.active {
-    background: var(--olive);
-    border-color: var(--olive);
+    background: var(--olive-fill);
+    border-color: var(--olive-fill);
     color: #FFF9F1;
 }
 
@@ -670,8 +671,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 }
 
 .day-task.done .task-icon {
-    background: var(--olive);
-    border-color: var(--olive);
+    background: var(--olive-fill);
+    border-color: var(--olive-fill);
     color: #FFF9F1;
 }
 
@@ -903,8 +904,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 }
 
 .option-chip.active {
-    background: var(--olive);
-    border-color: var(--olive);
+    background: var(--olive-fill);
+    border-color: var(--olive-fill);
     color: #FFF9F1;
 }
 
@@ -941,7 +942,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     box-shadow: 0 1px 3px rgba(74, 56, 36, 0.2);
 }
 
-.switch.on { background: var(--olive); }
+.switch.on { background: var(--olive-fill); }
 .switch.on::after { transform: translateX(18px); }
 
 /* ============ Карточки тренировок каталога ============ */
@@ -1305,8 +1306,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 }
 
 .week-day.done .week-day-dot {
-    background: var(--olive);
-    border-color: var(--olive);
+    background: var(--olive-fill);
+    border-color: var(--olive-fill);
     color: #FFF9F1;
 }
 
@@ -1443,6 +1444,48 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     animation: screenIn var(--t-med) ease;
 }
 
+/* Терракотовый hero первого шага — один из двух hero-моментов
+   приложения (второй — карточка тренировки дня), разрешённых осветлением */
+.ob-hero-card {
+    flex: 1;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(120deg, #9F4B2D 0%, #B95632 55%, #D58A5E 100%);
+    color: #FFF9F1;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    min-height: 60vh;
+}
+
+.ob-hero-card::after {
+    content: '';
+    position: absolute;
+    right: -10%;
+    top: -5%;
+    width: 70%;
+    height: 60%;
+    background: radial-gradient(circle at 70% 40%, rgba(255, 249, 241, 0.28) 0%, rgba(255, 249, 241, 0) 60%);
+    pointer-events: none;
+}
+
+.ob-hero-card .onboarding-title,
+.ob-hero-card h1 {
+    color: #FFF9F1;
+}
+
+.ob-hero-card .subtitle {
+    color: rgba(255, 249, 241, 0.92);
+}
+
+.ob-hero-card .botanical {
+    stroke: rgba(255, 249, 241, 0.85);
+    margin-bottom: auto;
+}
+
 .onboarding-content {
     flex: 1;
     max-width: 480px;
@@ -1565,7 +1608,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     flex-shrink: 0;
 }
 
-.section-gap { display: flex; flex-direction: column; gap: 20px; }
+.section-gap { display: flex; flex-direction: column; gap: 24px; }
 
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
