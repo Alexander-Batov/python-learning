@@ -17,6 +17,7 @@
 const Components = (() => {
 
     // --- Карточка цикла (круг): «День цикла» / число / фаза (спека §1) ---
+    // opts.withoutPhase — не рендерить строку фазы (мини-карточка в шапке)
     function cycleCard(day, phaseName, opts = {}) {
         const compact = Boolean(opts.compact);
         const cls = 'gf-cycle-card' + (compact ? ' gf-cycle-card-compact' : '');
@@ -25,7 +26,7 @@ const Components = (() => {
         <div class="${cls}" role="group" aria-label="${esc(label)} ${esc(day)}">
             <span class="gf-cycle-card-label">${esc(label)}</span>
             <span class="gf-cycle-card-day">${esc(day)}</span>
-            <span class="gf-cycle-card-phase">${esc(phaseName || '')}</span>
+            ${opts.withoutPhase ? '' : `<span class="gf-cycle-card-phase">${esc(phaseName || '')}</span>`}
         </div>`;
     }
 

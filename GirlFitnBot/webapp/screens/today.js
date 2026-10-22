@@ -1,6 +1,6 @@
 // Экран «Сегодня» — вёрстка 1-в-1 с референсом (Экраны/Первая вкладка.jpg).
-// Шапка → hero текущей фазы → чек-ин → фазы цикла (чипы + 4 карточки) →
-// активность недели → статистика за месяц. Данные — из модели (API/CycleMath).
+// Шапка → hero текущей фазы → чек-ин → компактная сводка активности недели.
+// Фазы цикла и полная статистика живут на своих вкладках («Цикл», «Активность»).
 
 const TODAY_PHASE_ORDER = ['menstrual', 'follicular', 'ovulatory', 'luteal'];
 
@@ -66,29 +66,25 @@ App.screens.today = (() => {
         const noCycle = !cycle || cycle.cycle_day === null || !cycle.phase;
         const parts = noCycle
             ? [renderHeader(), renderNoCycle()]
-            : [renderHeader(), renderHero(), renderCheckinRow(), renderPhases(),
-               renderActivityBlock(), renderMonth()];
+            : [renderHeader(), renderHero(), renderCheckinRow(),
+               renderActivityBlock()];
         setHTML('today-content', parts.join(''));
         bindAll();
     }
 
-    // --- 1. Шапка: приветствие + веточка + карточка цикла ---
+    // --- 1. Шапка: приветствие + мини-карточка цикла (без фазы и декора) ---
     function renderHeader() {
         const cycle = App.state.cycle;
-        const phase = cycle && cycle.phase
-            ? (App.state.content.phases[cycle.phase] || {}).name
-            : '';
         const card = (cycle && cycle.cycle_day !== null && cycle.phase)
-            ? Components.cycleCard(cycle.cycle_day, phase)
-            : Components.cycleCard('—', 'Цикл не настроен');
+            ? Components.cycleCard(cycle.cycle_day, '', { withoutPhase: true })
+            : Components.cycleCard('—', '', { withoutPhase: true });
         return `
         <header class="td-header">
             <div class="td-header-text">
-                <h1 class="td-greet">Привет,<br><span class="td-name">${esc(displayName())} ♡</span></h1>
+                <h1 class="td-greet">Привет,<br><span class="td-name">${esc(displayName())}</span></h1>
                 <p class="td-sub">Забота о себе — это не цель,<br>а образ жизни</p>
             </div>
             <div class="td-header-side">
-                ${Components.branch(54, 84)}
                 ${card}
             </div>
         </header>`;
@@ -111,7 +107,7 @@ App.screens.today = (() => {
         return `
         <section class="td-hero" id="t-hero" role="button" tabindex="0"
                  aria-label="${esc(p.name || '')}">
-            <img class="td-hero-img" src="img/hero-today.jpg" alt="">
+            <img class="td-hero-img" src="${IMAGES['hero-svetlana']}" alt="">
             <div class="td-hero-inner">
                 <span class="td-hero-badge">Сегодня</span>
                 <h2 class="td-hero-title">${esc(p.name || '')}</h2>
@@ -138,32 +134,7 @@ App.screens.today = (() => {
         </button>`;
     }
 
-    // --- 4. Фазы цикла: чипы + 4 карточки ---
-    function renderPhases() {
-        const items = TODAY_PHASE_ORDER.map((key) => phaseInfo(key).short_name || phaseInfo(key).name);
-        const cards = TODAY_PHASE_ORDER.map((key) => {
-            const p = phaseInfo(key);
-            return `
-            <div class="td-phase" role="button" tabindex="0" data-phase="${key}">
-                <img class="td-phase-img" src="${esc(p.img || '')}" alt="" loading="lazy">
-                <span class="td-phase-body">
-                    <span class="td-phase-name">${esc(p.short_name || p.name)}</span>
-                    <span class="td-phase-meta">${p.from}–${p.to} день · ${esc(p.descriptor || '')}</span>
-                    <span class="td-phase-note">${Components.icon('leaf', 15)} ${esc(p.tagline || '')}</span>
-                </span>
-                <span class="td-phase-side">
-                    ${Components.pillButton('Подробнее', 'primary', true)}
-                    <span class="gf-chev">›</span>
-                </span>
-            </div>`;
-        }).join('');
-        return `
-        <section>
-            <div id="t-phases-head">${Components.sectionHeader('Фазы цикла', 'Подробнее')}</div>
-            <div class="td-chips">${Components.chips(items, 0)}</div>
-            <div class="td-phase-list">${cards}</div>
-        </section>`;
-    }
+    // --- 4. Фазы цикла на «Сегодня» не показываем: фазы живут на вкладке «Цикл» ---
 
     // --- 5. Активность недели ---
     function renderActivityBlock() {
@@ -194,23 +165,7 @@ App.screens.today = (() => {
         </section>`;
     }
 
-    // --- 6. За месяц ---
-    function renderMonth() {
-        const d = progressData || {};
-        const items = [
-            { value: String(d.workouts_completed || 0), label: 'фазовых тренировок' },
-            { value: String(d.active_minutes || 0), label: 'минут активности' },
-            { value: `${d.regularity_pct || 0}%`, label: 'выполнения плана' },
-        ];
-        return `
-        <section class="td-month">
-            <div class="td-month-head">
-                <span class="td-month-cap">За месяц</span>
-                <button class="gf-section-link" id="t-stats">Вся статистика <span class="gf-chev">›</span></button>
-            </div>
-            ${Components.statBlock(items)}
-        </section>`;
-    }
+    // --- 6. «За месяц» на «Сегодня» не дублируем: полная статистика — на вкладке «Активность» ---
 
     // --- Шторка чек-ина (самочувствие + вода) ---
     function openCheckin() {
@@ -321,22 +276,8 @@ App.screens.today = (() => {
         const checkin = el('t-checkin');
         if (checkin) checkin.addEventListener('click', openCheckin);
 
-        const head = el('t-phases-head');
-        if (head) head.querySelector('.gf-section-link')
-            .addEventListener('click', () => showMain('cycle'));
-        document.querySelectorAll('#today-content .gf-chip').forEach((chip) => {
-            chip.addEventListener('click', () => showMain('cycle'));
-        });
-        document.querySelectorAll('#today-content .td-phase').forEach((card) => {
-            card.addEventListener('click', () =>
-                App.screens.cycle.openPhase(card.dataset.phase));
-        });
-
         const activity = el('t-activity');
         if (activity) activity.addEventListener('click', () => showMain('activity'));
-
-        const stats = el('t-stats');
-        if (stats) stats.addEventListener('click', () => showScreen('stats'));
     }
 
     return { onShow, render };

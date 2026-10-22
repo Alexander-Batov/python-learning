@@ -73,13 +73,13 @@ const Gamification = (() => {
         </button>`;
     }
 
-    // --- «Твой день заботы»: Тренировка ✓ · Питание ✓ · Вода ✓ · Привычка ○ ---
+    // --- «Твой день заботы»: Тренировка ✓ · Питание ✓ · Привычка ○ ---
     function renderCareDay(g) {
         const c = App.state.content.gamification;
         const cd = g.care_day;
         const items = [
             ['workout', cd.workout], ['nutrition', cd.nutrition],
-            ['water', cd.water], ['habit', cd.habit],
+            ['habit', cd.habit],
         ];
         return `
         <section class="card card-warm">
