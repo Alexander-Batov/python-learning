@@ -3033,6 +3033,13 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
+    cursor: pointer;
+}
+
+/* Яркий CTA конструктора тарелки (терракота, ≥48 px) */
+#nt-plate-cta {
+    width: 100%;
+    margin-top: 14px;
 }
 
 .nt-plate-right {

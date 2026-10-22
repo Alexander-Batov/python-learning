@@ -70,6 +70,7 @@ App.screens.nutrition = (() => {
     // --- Правило тарелки ---
     function renderPlateRule() {
         const r = App.state.content.nutrition_screen.plate_rule;
+        const cta = App.state.content.nutrition_screen.plate_cta;
         return `
         <section>
             <div class="gf-section-header">
@@ -85,7 +86,9 @@ App.screens.nutrition = (() => {
                     </div>
                     ${Components.icon('arrow', 24)}
                 </div>
-                <img class="nt-plate-img" src="img/plate.jpg" alt="Тарелка по правилу 50/25/25">
+                <img class="nt-plate-img" src="img/plate.jpg" alt="Тарелка по правилу 50/25/25"
+                     role="button" tabindex="0" id="nt-plate-img"
+                     aria-label="${esc(cta || 'Сформировать тарелку')}">
                 <div class="nt-plate-right">
                     <div class="nt-plate-item">
                         ${Components.icon('arrow', 24)}
@@ -105,6 +108,7 @@ App.screens.nutrition = (() => {
                     </div>
                 </div>
             </div>
+            <button type="button" class="btn" id="nt-plate-cta">${esc(cta || 'Сформировать тарелку')}</button>
             <div class="nt-note">
                 <span class="nt-note-icon">${Components.icon('leaf', 18)}</span>
                 <p>${esc(r.note)}</p>
@@ -168,6 +172,12 @@ App.screens.nutrition = (() => {
 
         const plateMore = el('nt-plate-more');
         if (plateMore) plateMore.addEventListener('click', openPlateBuilder);
+
+        // Тарелка-иллюстрация и CTA открывают конструктор
+        const plateImg = el('nt-plate-img');
+        if (plateImg) plateImg.addEventListener('click', openPlateBuilder);
+        const plateCta = el('nt-plate-cta');
+        if (plateCta) plateCta.addEventListener('click', openPlateBuilder);
 
         document.querySelectorAll('#nutrition-content .nt-phase-card').forEach((card) => {
             card.addEventListener('click', () => App.screens.cycle.openPhase(card.dataset.phase));
@@ -238,17 +248,26 @@ App.screens.nutrition = (() => {
         `);
     }
 
-    // --- Конструктор тарелки (сохранён) ---
-    const builder = { step: 0, picked: {} };
+    // --- Конструктор тарелки: мультивыбор продуктов + свой вариант в каждой категории ---
+    const builder = { step: 0, picked: {}, other: {} };
 
     function openPlateBuilder() {
         builder.step = 0;
         builder.picked = {};
+        builder.other = {};
         renderBuilder();
         showScreen('plate');
     }
 
     const BUILDER_KEYS = ['proteins', 'veg', 'carbs', 'fats'];
+
+    // Выбранное в категории: отмеченные продукты + (опционально) свой вариант
+    function pickedItems(key) {
+        const items = [...(builder.picked[key] || [])];
+        const custom = (builder.other[key] || '').trim();
+        if (custom) items.push(custom);
+        return items;
+    }
 
     function renderBuilder() {
         const c = App.state.content.nutrition_screen;
@@ -258,8 +277,8 @@ App.screens.nutrition = (() => {
         const stepsBar = stepLabels.map((_, i) =>
             `<div class="builder-step${i < builder.step || done ? ' on' : ''}"></div>`).join('');
         const pickedSummary = BUILDER_KEYS
-            .filter((k) => builder.picked[k])
-            .map((k, i) => `${stepLabels[i].toLowerCase()}: <b>${esc(builder.picked[k])}</b>`).join(' · ');
+            .filter((k) => pickedItems(k).length)
+            .map((k, i) => `${stepLabels[i].toLowerCase()}: <b>${esc(pickedItems(k).join(', '))}</b>`).join(' · ');
 
         if (done) {
             setHTML('plate-builder', `
@@ -284,6 +303,9 @@ App.screens.nutrition = (() => {
         }
 
         const options = c.plate_items[key] || [];
+        const custom = builder.other[key] || '';
+        const showOther = builder.showOtherKey === key;
+        const hasPick = pickedItems(key).length > 0;
         setHTML('plate-builder', `
             <section class="card">
                 <div class="builder-steps">${stepsBar}</div>
@@ -291,21 +313,57 @@ App.screens.nutrition = (() => {
                 <p class="subtitle">${c.plate_builder_hint}</p>
                 <div class="option-row">
                     ${options.map((o) => `
-                        <button class="option-chip${builder.picked[key] === o ? ' active' : ''}"
+                        <button class="option-chip${(builder.picked[key] || []).includes(o) ? ' active' : ''}"
                             data-pick="${esc(o)}">${esc(o)}</button>`).join('')}
+                    <button class="option-chip${showOther ? ' active' : ''}"
+                        data-pick="__other">${esc(c.plate_other || 'Другое')}</button>
                 </div>
+                ${showOther ? `
+                <label class="field">
+                    <span class="field-label">${esc(c.plate_other_label || 'Свой вариант')}</span>
+                    <input type="text" id="pb-other" maxlength="64"
+                           placeholder="${esc(c.plate_other_placeholder || '')}"
+                           value="${esc(custom)}">
+                </label>` : ''}
                 ${pickedSummary ? `<div class="builder-picked">${pickedSummary}</div>` : ''}
-                <button class="btn" id="pb-next" ${builder.picked[key] ? '' : 'disabled'}>${App.state.content.onboarding.next}</button>
+                <button class="btn" id="pb-next" ${hasPick ? '' : 'disabled'}>${App.state.content.onboarding.next}</button>
             </section>
         `);
+
+        const updateNext = () => {
+            el('pb-next').disabled = pickedItems(key).length === 0;
+        };
+
         document.querySelectorAll('#plate-builder [data-pick]').forEach((chip) => {
             chip.addEventListener('click', () => {
-                builder.picked[key] = chip.dataset.pick;
-                document.querySelectorAll('#plate-builder [data-pick]')
-                    .forEach((x) => x.classList.toggle('active', x === chip));
-                el('pb-next').disabled = false;
+                const val = chip.dataset.pick;
+                if (val === '__other') {
+                    // переключение поля своего варианта
+                    builder.showOtherKey = showOther ? null : key;
+                    if (showOther) builder.other[key] = '';
+                    renderBuilder();
+                    const input = el('pb-other');
+                    if (input) input.focus();
+                    return;
+                }
+                builder.picked[key] = builder.picked[key] || [];
+                const arr = builder.picked[key];
+                const idx = arr.indexOf(val);
+                if (idx >= 0) arr.splice(idx, 1);
+                else arr.push(val);
+                chip.classList.toggle('active');
+                updateNext();
             });
         });
+
+        const otherInput = el('pb-other');
+        if (otherInput) {
+            otherInput.addEventListener('input', () => {
+                builder.other[key] = otherInput.value;
+                updateNext();
+            });
+        }
+
         el('pb-next').addEventListener('click', () => {
             builder.step += 1;
             renderBuilder();
