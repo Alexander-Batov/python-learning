@@ -61,9 +61,12 @@ def main() -> None:
         ws.call("Page.navigate", {"url": url}, 5)
         time.sleep(wait_sec + 2)  # загрузка + первый рендер
         res = ws.call("Runtime.evaluate",
-                      {"expression": js, "awaitPromise": True}, 6)
+                      {"expression": js, "awaitPromise": True,
+                       "returnByValue": True}, 6)
         if "exceptionDetails" in res.get("result", {}):
             print("JS exception:", json.dumps(res["result"]["exceptionDetails"])[:400])
+        else:
+            print("JS result:", json.dumps(res.get("result", {}).get("result", {}).get("value")))
         time.sleep(wait_sec)
         shot = ws.call("Page.captureScreenshot", {"format": "png"}, 7)
         data = base64.b64decode(shot["result"]["data"])
