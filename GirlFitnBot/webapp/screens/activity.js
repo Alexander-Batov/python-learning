@@ -1,6 +1,6 @@
 // Экран «Активность» — вёрстка 1-в-1 с референсом (Экраны/Третья вкладка.jpg).
 // Шапка → «Твоя активность» (кольцо недели) → hero тренировки дня → каталог с
-// фильтрами-категориями → блок «Активность на сегодня» и месяц.
+// фильтрами-категориями → компактная сводка за месяц (полная — по клику).
 // Плеер тренировки (до → во время → после) сохранён без изменений.
 
 App.screens.activity = (() => {
@@ -47,12 +47,12 @@ App.screens.activity = (() => {
             renderTodayCard(items),
             renderCatalogHead(),
             renderCatalog(items),
-            renderBottomBlock(),
+            renderMonthStrip(),
         ].join(''));
         bindAll(items);
     }
 
-    // --- Шапка: «Активность 🌱» + профиль + веточка + подзаголовок ---
+    // --- Шапка: «Активность 🌱» + профиль + подзаголовок ---
     function renderHeader() {
         return `
         <header class="ac-head">
@@ -66,7 +66,6 @@ App.screens.activity = (() => {
                 <button class="cy-profile" id="ac-profile" aria-label="Профиль">
                     ${Components.icon('user', 24)}
                 </button>
-                ${Components.branch(54, 84)}
             </div>
         </header>`;
     }
@@ -222,40 +221,21 @@ App.screens.activity = (() => {
         </div>`;
     }
 
-    // --- Нижний блок: активность на сегодня + за месяц ---
-    function renderBottomBlock() {
+    // --- Сводка за месяц: компактная строка (без дубля недели); полная статистика — по клику ---
+    function renderMonthStrip() {
         if (!progressCache) return '';
         const c = App.state.content.activity_screen;
         const p = progressCache;
-        const { names, doneIdx } = weekStats();
-        const pastWeeks = (p.weeks || []).slice(0, -1).filter((w) => w.pct > 0).length;
         return `
-        <section class="td-activity" id="ac-today-block" role="button" tabindex="0" aria-label="Активность на сегодня">
-            <div class="td-activity-head">
-                <span class="td-checkin-icon ac-shoe">${Components.icon('footprints', 22)}</span>
-                <span class="td-activity-titles">
-                    <span class="td-activity-title">Активность на сегодня</span>
-                </span>
-            </div>
-            <div class="td-activity-body">
-                <div class="td-activity-count">
-                    <span class="td-count">${doneIdx.length} / 7</span>
-                    <span class="td-count-cap">дней выполнено</span>
-                </div>
-                <div class="td-activity-week">${Components.weekDots(names, doneIdx, names)}</div>
-            </div>
-            <p class="td-activity-note">${Components.icon('leaf', 16)}
-                <span>Ты занимаешься регулярно уже ${pastWeeks} ${pastWeeks === 1 ? 'неделю' : pastWeeks < 5 ? 'недели' : 'недель'}</span>
-            </p>
-            <div class="ac-month">
-                <span class="td-month-cap">За месяц</span>
-                <span class="ac-month-stats">
-                    <b>${p.workouts_completed}</b> ${c.workouts_word} ·
-                    <b>${p.active_minutes}</b> ${c.minutes_word} ·
-                    <b>${p.regularity_pct}%</b> ${c.plan_completion}
-                </span>
-                <span class="gf-chev">›</span>
-            </div>
+        <section class="card-like ac-month-strip" id="ac-month" role="button" tabindex="0"
+                 aria-label="Статистика за месяц">
+            <span class="td-month-cap">За месяц</span>
+            <span class="ac-month-stats">
+                <b>${p.workouts_completed}</b> ${c.workouts_word} ·
+                <b>${p.active_minutes}</b> ${c.minutes_word} ·
+                <b>${p.regularity_pct}%</b> ${c.plan_completion}
+            </span>
+            <span class="gf-chev">›</span>
         </section>`;
     }
 
@@ -303,8 +283,8 @@ App.screens.activity = (() => {
             });
         });
 
-        const todayBlock = el('ac-today-block');
-        if (todayBlock) todayBlock.addEventListener('click', () => App.screens.profile.openStats());
+        const month = el('ac-month');
+        if (month) month.addEventListener('click', () => App.screens.profile.openStats());
     }
 
     // ============ Плеер тренировки ============

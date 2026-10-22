@@ -2937,6 +2937,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     color: var(--text-primary);
 }
 
+/* Компактная сводка за месяц (отдельная карточка под каталогом) */
+.ac-month-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
 .ac-shoe { width: 40px; height: 40px; }
 
 /* === Экран: Питание (1в1, референс Экраны/Четверный экран.jpg) === */
