@@ -1,6 +1,7 @@
 // Экран «Привычки» — вёрстка 1-в-1 с референсом (Экраны/Пятый экран.jpg).
-// Шесть трекеров: сон, питание, витамины, вода, шаги, уровень энергии.
-// Данные: /api/today и /api/water (питание, вода, энергия); сон/витамины/шаги — моки.
+// Шесть трекеров: сон (ввод числом или интервалом, локально), питание, витамины,
+// вода («+» и ручной ввод мл/л через /api/water), шаги (ручной ввод, локально),
+// уровень энергии. Питание/витамины — клики без изменений.
 
 App.screens.habits = (() => {
     let todayCache = null;
@@ -66,13 +67,36 @@ App.screens.habits = (() => {
         </header>`;
     }
 
-    // --- Сон: неделя дней с отметками (мок: дни до сегодня выполнены) ---
+    // --- Сон: неделя дней с отметками; ввод часов — числом или интервалом (мок) ---
+    function sleepToday() {
+        try {
+            return JSON.parse(localStorage.getItem(`gf_sleep_${todayISO()}`) || 'null');
+        } catch (err) { return null; }
+    }
+
+    function formatSleepHours(h) {
+        const whole = Math.floor(h);
+        const mins = Math.round((h - whole) * 60);
+        return mins ? `${whole} ч ${mins} мин` : `${whole} ч`;
+    }
+
+    // Длительность интервала «со скольки до скольки» в часах (ночь: до < от)
+    function intervalHours(from, to) {
+        const [fh, fm] = from.split(':').map(Number);
+        const [th, tm] = to.split(':').map(Number);
+        let diff = (th * 60 + tm) - (fh * 60 + fm);
+        if (diff <= 0) diff += 24 * 60;
+        return Math.round(diff / 30) / 2;
+    }
+
     function renderSleep() {
         const t = tt();
         const now = new Date();
         const monday = new Date(now);
         monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
         const dayNames = App.state.content.common.day_names;
+        const saved = sleepToday();
+        const value = saved ? formatSleepHours(saved.hours) : t.sleep_value;
         const cells = Array.from({ length: 7 }, (_, i) => {
             const d = new Date(monday);
             d.setDate(monday.getDate() + i);
@@ -86,7 +110,8 @@ App.screens.habits = (() => {
             </div>`;
         }).join('');
         return `
-        <section class="card-like ht-card">
+        <section class="card-like ht-card" id="ht-sleep" role="button" tabindex="0"
+                 aria-label="${esc(t.sleep_title)}">
             <div class="ht-head">
                 <span class="ht-icon ht-icon-olive">${Components.icon('moon', 21)}</span>
                 <div class="ht-head-txt">
@@ -94,13 +119,82 @@ App.screens.habits = (() => {
                     <p class="ht-sub">${esc(t.sleep_goal)}</p>
                 </div>
                 <div class="ht-side">
-                    <span class="ht-value">${esc(t.sleep_value)}</span>
+                    <span class="ht-value">${esc(value)}</span>
                     <span class="ht-side-sub">${esc(t.today_word)}</span>
                 </div>
                 <span class="gf-chev ht-chev">›</span>
             </div>
             <div class="ht-week">${cells}</div>
         </section>`;
+    }
+
+    // --- Шторка сна: число часов ИЛИ интервал, с переключателем ---
+    function openSleepSheet() {
+        const t = tt();
+        const saved = sleepToday() || {};
+        let mode = saved.mode || 'hours';
+        openModal(`
+            <h2>${esc(t.sleep_sheet_title)}</h2>
+            <div class="option-row" id="hs-modes">
+                <button type="button" class="option-chip${mode === 'hours' ? ' active' : ''}"
+                    data-mode="hours">${esc(t.sleep_mode_hours)}</button>
+                <button type="button" class="option-chip${mode === 'interval' ? ' active' : ''}"
+                    data-mode="interval">${esc(t.sleep_mode_interval)}</button>
+            </div>
+            <div id="hs-body"></div>
+            <button class="btn" id="hs-save">${esc(t.sleep_save)}</button>
+            <button class="btn btn-ghost" id="hs-cancel">Отмена</button>
+        `);
+        const renderBody = () => {
+            if (mode === 'hours') {
+                el('hs-body').innerHTML = `
+                    <label class="field">
+                        <span class="field-label">${esc(t.sleep_hours_label)}</span>
+                        <input type="number" id="hs-hours" min="0" max="24" step="0.5"
+                               inputmode="decimal" value="${saved.hours != null ? saved.hours : ''}">
+                    </label>`;
+            } else {
+                el('hs-body').innerHTML = `
+                    <div class="flex-row">
+                        <label class="field" style="flex:1;min-width:0;">
+                            <span class="field-label">${esc(t.sleep_from_label)}</span>
+                            <input type="time" id="hs-from" value="${esc(saved.from || '23:00')}">
+                        </label>
+                        <label class="field" style="flex:1;min-width:0;">
+                            <span class="field-label">${esc(t.sleep_to_label)}</span>
+                            <input type="time" id="hs-to" value="${esc(saved.to || '07:00')}">
+                        </label>
+                    </div>`;
+            }
+        };
+        renderBody();
+        document.querySelectorAll('#hs-modes .option-chip').forEach((chip) => {
+            chip.addEventListener('click', () => {
+                mode = chip.dataset.mode;
+                document.querySelectorAll('#hs-modes .option-chip')
+                    .forEach((x) => x.classList.toggle('active', x === chip));
+                renderBody();
+            });
+        });
+        el('hs-cancel').addEventListener('click', closeModal);
+        el('hs-save').addEventListener('click', () => {
+            let data;
+            if (mode === 'hours') {
+                const h = parseFloat(el('hs-hours').value);
+                if (!(h > 0) || h > 24) return;
+                data = { mode, hours: Math.round(h * 2) / 2 };
+            } else {
+                const from = el('hs-from').value;
+                const to = el('hs-to').value;
+                if (!from || !to) return;
+                data = { mode, from, to, hours: intervalHours(from, to) };
+            }
+            try {
+                localStorage.setItem(`gf_sleep_${todayISO()}`, JSON.stringify(data));
+            } catch (err) { /* localStorage недоступен — просто закрываем */ }
+            closeModal();
+            render();
+        });
     }
 
     // --- Питание: приёмы пищи из /api/today ---
@@ -167,7 +261,7 @@ App.screens.habits = (() => {
         </section>`;
     }
 
-    // --- Вода: стаканы из /api/today, «+» шлёт /api/water ---
+    // --- Вода: стаканы из /api/today, «+» шлёт /api/water; есть ручной ввод (мл/л) ---
     function renderWater() {
         const t = tt();
         const glasses = (todayCache && todayCache.gamification
@@ -185,13 +279,44 @@ App.screens.habits = (() => {
             pct,
             barCls: 'ht-bar-blue',
             actionId: 'ht-water-plus',
+            manual: {
+                inputId: 'ht-water-input',
+                unitId: 'ht-water-unit',
+                confirmId: 'ht-water-apply',
+                placeholder: t.water_manual_placeholder,
+            },
         });
     }
 
-    // --- Шаги: мок (бэкенда нет) ---
+    async function submitWaterManual() {
+        const input = el('ht-water-input');
+        const val = parseFloat(String(input.value).replace(',', '.'));
+        if (!(val > 0)) return;
+        const unit = el('ht-water-unit').dataset.unit || 'ml';
+        const ml = unit === 'l' ? val * 1000 : val;
+        const glasses = Math.max(1, Math.round(ml / 250));
+        const current = (todayCache.gamification && todayCache.gamification.water_glasses) || 0;
+        input.disabled = true;
+        try {
+            const res = await apiPost('/api/water', { date: todayISO(), glasses: current + glasses });
+            todayCache.gamification.water_glasses = res.glasses;
+            render();
+        } catch (err) {
+            input.disabled = false;
+            infoSheet(tt().water_title, `Не сохранилось: ${apiErrorText(err)}`);
+        }
+    }
+
+    // --- Шаги: мок (бэкенда нет), значение — из ручного ввода, хранится локально ---
+    function stepsToday() {
+        try {
+            return Number(localStorage.getItem(`gf_steps_${todayISO()}`) || 0);
+        } catch (err) { return 0; }
+    }
+
     function renderSteps() {
         const t = tt();
-        const steps = 7420;
+        const steps = stepsToday() || 7420;
         const pct = Math.min(100, Math.round((steps / 10000) * 100));
         return progressCard({
             icon: Components.icon('footprints', 21),
@@ -202,10 +327,25 @@ App.screens.habits = (() => {
             pct,
             barCls: 'ht-bar-olive',
             actionId: 'ht-steps-info',
+            manual: {
+                inputId: 'ht-steps-input',
+                confirmId: 'ht-steps-apply',
+                placeholder: t.steps_manual_placeholder,
+            },
         });
     }
 
-    function progressCard({ icon, iconCls, name, sub, value, pct, barCls, actionId }) {
+    function submitStepsManual() {
+        const input = el('ht-steps-input');
+        const val = parseInt(input.value, 10);
+        if (!(val > 0)) return;
+        try {
+            localStorage.setItem(`gf_steps_${todayISO()}`, String(val));
+        } catch (err) { /* localStorage недоступен */ }
+        render();
+    }
+
+    function progressCard({ icon, iconCls, name, sub, value, pct, barCls, actionId, manual }) {
         return `
         <section class="card-like ht-card">
             <div class="ht-head">
@@ -224,6 +364,15 @@ App.screens.habits = (() => {
                 <div class="ht-bar"><span class="ht-bar-fill ${barCls}" style="width:${pct}%"></span></div>
                 <button type="button" class="ht-plus" id="${actionId}" aria-label="Добавить">+</button>
             </div>
+            ${manual ? `
+            <div class="ht-manual-form">
+                <input type="number" class="ht-manual" id="${manual.inputId}" min="0"
+                       inputmode="decimal" placeholder="${esc(manual.placeholder)}">
+                ${manual.unitId
+                    ? `<button type="button" class="ht-unit" id="${manual.unitId}" data-unit="ml">мл</button>`
+                    : ''}
+                <button type="button" class="ht-unit" id="${manual.confirmId}">ОК</button>
+            </div>` : ''}
         </section>`;
     }
 
@@ -304,6 +453,37 @@ App.screens.habits = (() => {
                 }
             });
         }
+        // Ручной ввод воды: число + переключатель мл/л
+        const waterUnit = el('ht-water-unit');
+        if (waterUnit) {
+            waterUnit.addEventListener('click', () => {
+                const next = waterUnit.dataset.unit === 'ml' ? 'l' : 'ml';
+                waterUnit.dataset.unit = next;
+                waterUnit.textContent = next === 'ml' ? 'мл' : 'л';
+                el('ht-water-input').placeholder = next === 'ml'
+                    ? tt().water_manual_placeholder : tt().water_manual_placeholder_l;
+            });
+        }
+        const waterApply = el('ht-water-apply');
+        if (waterApply) waterApply.addEventListener('click', submitWaterManual);
+        const waterInput = el('ht-water-input');
+        if (waterInput) {
+            waterInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitWaterManual();
+            });
+        }
+        // Ручной ввод шагов
+        const stepsApply = el('ht-steps-apply');
+        if (stepsApply) stepsApply.addEventListener('click', submitStepsManual);
+        const stepsInput = el('ht-steps-input');
+        if (stepsInput) {
+            stepsInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitStepsManual();
+            });
+        }
+        // Карточка сна — ввод часов/интервала
+        const sleepCard = el('ht-sleep');
+        if (sleepCard) sleepCard.addEventListener('click', openSleepSheet);
         const stepsInfo = el('ht-steps-info');
         if (stepsInfo) {
             stepsInfo.addEventListener('click', () => infoSheet(tt().steps_title, tt().steps_hint));

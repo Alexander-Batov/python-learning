@@ -3493,6 +3493,48 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     flex-shrink: 0;
 }
 
+/* --- Ручной ввод числом (вода — мл/л, шаги) --- */
+.ht-manual-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.ht-manual {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-warm);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.ht-manual:focus {
+    outline: 2px solid var(--olive);
+    outline-offset: 1px;
+    border-color: transparent;
+}
+
+.ht-unit {
+    height: 44px;
+    min-width: 52px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-soft);
+    background: var(--btn-secondary-bg);
+    color: var(--olive);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
 /* --- Уровень энергии: шкала смайлов --- */
 .ht-energy-pill { cursor: default; }
 
