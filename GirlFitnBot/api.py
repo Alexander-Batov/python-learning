@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 # initData живёт сутки: старше — считаем подпись просроченной
 INIT_DATA_MAX_AGE = 24 * 60 * 60
 
-NOTIFY_KEYS = ("plan", "workout", "habit", "checkin", "period")
+NOTIFY_KEYS = ("plan", "workout", "habit", "vitamins", "checkin", "period")
 UNITS_VALUES = {"weight": ("kg", "lb"), "height": ("cm", "in")}
 
 

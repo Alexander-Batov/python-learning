@@ -41,19 +41,18 @@ App.screens.profile = (() => {
         bindAll();
     }
 
-    // --- Шапка: «Личный кабинет ♡» + подпись + веточка + шестерёнка ---
+    // --- Шапка: «Личный кабинет» + подпись + шестерёнка ---
     function renderHead() {
         const cc = c();
         return `
         <header class="td-header pf-head">
             <div class="td-header-text">
-                <h1 class="gf-screen-title">${esc(cc.cabinet_title)} <span class="pf-heart">♡</span></h1>
+                <h1 class="gf-screen-title">${esc(cc.cabinet_title)}</h1>
                 <p class="td-sub pf-sub">${esc(cc.cabinet_sub).replace('\n', '<br>')}</p>
             </div>
             <div class="td-header-side pf-head-side">
                 <button type="button" class="pf-gear" id="pf-gear"
                     aria-label="${esc(cc.settings_title)}">${Components.icon('gear', 22)}</button>
-                ${Components.branch(54, 84)}
             </div>
         </header>`;
     }
@@ -76,11 +75,10 @@ App.screens.profile = (() => {
                     aria-label="${esc(cc.edit_profile)}">${Components.icon('pencil', 11)}</button>
             </div>
             <div class="pf-id">
-                <p class="pf-name">${esc(displayName())} <span class="pf-heart">♡</span></p>
+                <p class="pf-name">${esc(displayName())}</p>
                 <p class="pf-quote">${esc(cc.quote)}</p>
             </div>
             <div class="pf-cycle-side">
-                ${Components.branch(18, 32)}
                 ${card}
             </div>
         </section>`;

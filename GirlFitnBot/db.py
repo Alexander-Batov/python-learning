@@ -47,6 +47,7 @@ def init() -> None:
                 notify_plan   INTEGER NOT NULL DEFAULT 0,
                 notify_workout INTEGER NOT NULL DEFAULT 0,
                 notify_habit  INTEGER NOT NULL DEFAULT 0,
+                notify_vitamins INTEGER NOT NULL DEFAULT 0,
                 notify_checkin INTEGER NOT NULL DEFAULT 0,
                 notify_period INTEGER NOT NULL DEFAULT 0,
                 subscription_plan TEXT NOT NULL DEFAULT 'free',
@@ -72,6 +73,9 @@ def init() -> None:
                 "INTEGER NOT NULL DEFAULT 0",
             "notify_habit":
                 "ALTER TABLE users ADD COLUMN notify_habit "
+                "INTEGER NOT NULL DEFAULT 0",
+            "notify_vitamins":
+                "ALTER TABLE users ADD COLUMN notify_vitamins "
                 "INTEGER NOT NULL DEFAULT 0",
             "notify_checkin":
                 "ALTER TABLE users ADD COLUMN notify_checkin "
@@ -361,7 +365,7 @@ def save_user(
     (например, только цели или только флаги уведомлений) не стирают остальное.
     """
     existing = get_user(tg_id)
-    notify_cols = ("plan", "workout", "habit", "checkin", "period")
+    notify_cols = ("plan", "workout", "habit", "vitamins", "checkin", "period")
     # Значения для INSERT: переданные, иначе имеющиеся у пользователя
     notify_vals = {
         key: int(bool(notify.get(key))) if notify and key in notify
@@ -407,9 +411,9 @@ def save_user(
             INSERT INTO users
                 (tg_id, name, cycle_start, cycle_length, period_length,
                  goals, notify_plan, notify_workout, notify_habit,
-                 notify_checkin, notify_period, units_weight, units_height,
-                 created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                 notify_vitamins, notify_checkin, notify_period,
+                 units_weight, units_height, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
             ON CONFLICT(tg_id) DO UPDATE SET
             """
             + ", ".join(sets),
@@ -417,8 +421,8 @@ def save_user(
                 tg_id, (name or "").strip()[:64], cycle_start, cycle_length,
                 period_val, goals_val,
                 notify_vals["plan"], notify_vals["workout"],
-                notify_vals["habit"], notify_vals["checkin"],
-                notify_vals["period"],
+                notify_vals["habit"], notify_vals["vitamins"],
+                notify_vals["checkin"], notify_vals["period"],
                 units_vals["weight"], units_vals["height"],
             ],
         )

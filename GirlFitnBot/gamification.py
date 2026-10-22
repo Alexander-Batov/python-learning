@@ -108,6 +108,7 @@ REMINDER_TYPES = [
     {"id": "workout", "label": "Тренировка", "default_time": "19:00"},
     {"id": "nutrition", "label": "Питание", "default_time": "12:30"},
     {"id": "water", "label": "Вода", "default_time": "14:00"},
+    {"id": "vitamins", "label": "Витамины", "default_time": "09:00"},
     {"id": "cycle_start", "label": "Начало цикла", "default_time": "09:00"},
     {"id": "habit", "label": "Привычка", "default_time": "20:00"},
     {"id": "checkin", "label": "Чек-ин", "default_time": "21:00"},
