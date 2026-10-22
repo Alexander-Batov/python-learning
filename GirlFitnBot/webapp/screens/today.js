@@ -1,5 +1,8 @@
-// Экран «Сегодня»: карточка цикла → фраза дня → активность → питание →
-// привычка → чек-ин → прогресс дня. Визуальная иерархия спеки соблюдена.
+// Экран «Сегодня» — вёрстка 1-в-1 с референсом (Экраны/Первая вкладка.jpg).
+// Шапка → hero текущей фазы → чек-ин → фазы цикла (чипы + 4 карточки) →
+// активность недели → статистика за месяц. Данные — из модели (API/CycleMath).
+
+const TODAY_PHASE_ORDER = ['menstrual', 'follicular', 'ovulatory', 'luteal'];
 
 const ENERGY_EMOJIS = ['😴', '😐', '🙂', '😊', '⚡'];
 const MOOD_EMOJIS = ['😞', '😐', '🙂', '😊', '🤩'];
@@ -7,8 +10,9 @@ const FEELING_LABELS = ['плохо', 'нормально', 'хорошо'];
 
 App.screens.today = (() => {
 
+    let progressData = null;
+
     async function onShow() {
-        renderHeader();
         if (App.state.cycleError) {
             setHTML('today-content', errorState(App.state.cycleError, 'App.screens.today.onShow'));
             return;
@@ -22,217 +26,212 @@ App.screens.today = (() => {
                 'App.screens.today.onShow'));
             return;
         }
+        try {
+            const now = new Date();
+            const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            progressData = await apiGet(`/api/progress?month=${month}&date=${todayISO()}`);
+        } catch (err) {
+            console.error('[today] /api/progress:', err);
+            progressData = { days: {}, workouts_completed: 0, active_minutes: 0, regularity_pct: 0 };
+        }
         render();
+        // Геймификация: поздравление с переходом уровня и лепесток «+N» (без карточки уровня)
+        const g = App.state.today && App.state.today.gamification;
+        if (g && g.points) {
+            Gamification.checkLevelUp(g.points);
+            Gamification.petalIfIncreased(g.points);
+        }
     }
 
-    function renderHeader() {
-        const c = App.state.content ? App.state.content.today_screen : null;
-        const hour = new Date().getHours();
-        const greet = !c ? 'Привет'
-            : hour < 5 ? c.greeting_evening
-            : hour < 11 ? c.greeting_morning
-            : hour < 18 ? c.greeting_day
-            : c.greeting_evening;
-        el('today-greeting').textContent = `${greet}, ${displayName()} ♡`;
-        el('today-date').textContent = formatHeaderDate();
-        el('today-avatar').textContent = avatarLetter();
+    // --- Данные фазы: контент + актуальный диапазон дней из CycleMath ---
+    function phaseInfo(key) {
+        const cycle = App.state.cycle || {};
+        const period = cycle.period_length || CycleMath.DEFAULT_PERIOD_LENGTH;
+        const ranges = CycleMath.phaseRanges(cycle.cycle_length || 28, period);
+        const p = (App.state.content && App.state.content.phases[key]) || {};
+        const range = ranges[key] || [1, cycle.cycle_length || 28];
+        return { ...p, from: range[0], to: range[1] };
+    }
+
+    function currentWeekDates() {
+        const now = new Date();
+        const dow = (now.getDay() + 6) % 7; // 0 = понедельник
+        const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow);
+        return Array.from({ length: 7 }, (_, i) =>
+            CycleMath.toISODate(new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + i)));
     }
 
     function render() {
-        const c = App.state.content.today_screen;
-        const t = App.state.today;
-        if (!t) {
-            setHTML('today-content', emptyState(c.loading));
-            return;
-        }
-        const parts = [
-            renderLevelBlock(c, t),
-            renderCycleCard(c),
-            renderPhrase(c),
-            renderActivity(c, t),
-            renderNutrition(c),
-            renderHabit(c, t),
-            renderCheckin(c, t),
-            renderProgress(c, t),
-        ];
+        const cycle = App.state.cycle;
+        const noCycle = !cycle || cycle.cycle_day === null || !cycle.phase;
+        const parts = noCycle
+            ? [renderHeader(), renderNoCycle()]
+            : [renderHeader(), renderHero(), renderCheckinRow(), renderPhases(),
+               renderActivityBlock(), renderMonth()];
         setHTML('today-content', parts.join(''));
-        bindAll(c, t);
-        // Мотивационная система: поздравление с переходом уровня и
-        // мягкая анимация начисленных баллов (лепесток «+N»)
-        if (t.gamification) {
-            Gamification.checkLevelUp(t.gamification.points);
-            Gamification.petalIfIncreased(t.gamification.points);
-        }
+        bindAll();
     }
 
-    // --- Карточка уровня + «Твой день заботы» (референс Экран 1) ---
-    function renderLevelBlock(c, t) {
-        const g = t.gamification;
-        if (!g) return '';
-        return Gamification.renderLevelCard(g) + Gamification.renderCareDay(g);
-    }
-
-    // --- Карточка цикла (самая заметная) ---
-    function renderCycleCard(c) {
+    // --- 1. Шапка: приветствие + веточка + карточка цикла ---
+    function renderHeader() {
         const cycle = App.state.cycle;
-        if (!cycle || cycle.cycle_day === null || !cycle.phase) {
-            return `
-            <section class="cycle-card">
-                <div class="cycle-card-top">
-                    <div class="cycle-badge">
-                        <span class="cycle-badge-label">🌸</span>
-                    </div>
-                    <div class="cycle-card-info">
-                        <p class="cycle-phase-name">${c.cycle_no_data_title}</p>
-                        <p class="cycle-next">${c.cycle_no_data_text}</p>
-                    </div>
-                </div>
-                <button class="btn btn-small" id="t-setup-cycle">${c.cycle_setup}</button>
-            </section>`;
-        }
-        const phase = App.state.content.phases[cycle.phase];
-        const pos = Math.min(100, Math.max(0, (cycle.cycle_day / cycle.cycle_length) * 100));
+        const phase = cycle && cycle.phase
+            ? (App.state.content.phases[cycle.phase] || {}).name
+            : '';
+        const card = (cycle && cycle.cycle_day !== null && cycle.phase)
+            ? Components.cycleCard(cycle.cycle_day, phase)
+            : Components.cycleCard('—', 'Цикл не настроен');
         return `
-        <section class="cycle-card">
-            <div class="cycle-card-top">
-                <div class="cycle-badge">
-                    <span class="cycle-badge-label">${c.cycle_day_prefix}</span>
-                    <span class="cycle-badge-day">${cycle.cycle_day}</span>
-                </div>
-                <div class="cycle-card-info">
-                    <p class="cycle-phase-name">${phase.name}</p>
-                    <p class="cycle-next">${c.next_period_prefix} ≈ ${daysUntil(cycle.next_period)} ${c.days_word}</p>
-                </div>
+        <header class="td-header">
+            <div class="td-header-text">
+                <h1 class="td-greet">Привет,<br><span class="td-name">${esc(displayName())} ♡</span></h1>
+                <p class="td-sub">Забота о себе — это не цель,<br>а образ жизни</p>
             </div>
-            <div>
-                <div class="cycle-track">
-                    <div class="cycle-track-line"></div>
-                    <div class="cycle-track-fill" style="width: calc(${pos}% - 4px);"></div>
-                    <div class="cycle-track-dot" style="left: calc(${pos}% );"></div>
-                </div>
-                <div class="cycle-track-marks">
-                    <span>1</span><span>${cycle.cycle_length}</span>
-                </div>
+            <div class="td-header-side">
+                ${Components.branch(54, 84)}
+                ${card}
             </div>
-            <button class="link-btn" id="t-more-cycle">${c.more_cycle} →</button>
-        </section>`;
+        </header>`;
     }
 
-    function daysUntil(iso) {
-        const diff = dateFromISO(iso) - dateFromISO(todayISO());
-        return Math.max(0, Math.round(diff / 86400000));
-    }
-
-    // --- Фраза дня (по фазе, детерминированно) ---
-    function renderPhrase(c) {
-        const cycle = App.state.cycle;
-        const phrases = (App.state.content.phrases || {})[cycle && cycle.phase];
-        const text = pickByDate(phrases, todayISO())
-            || pickByDate(App.state.content.wishes, todayISO());
-        if (!text) return '';
-        return `
-        <section class="card card-warm">
-            <h3>${c.phrase_title}</h3>
-            <p class="subtitle" style="font-style:italic">${text}</p>
-        </section>`;
-    }
-
-    // --- Карточка активности (главная карточка тренировки по референсу) ---
-    function renderActivity(c, t) {
-        const w = t.workout;
-        if (!w) {
-            return `
-            <section class="card">
-                <h3>${c.activity_title}</h3>
-                <p class="empty-hint">${App.state.content.activity_screen.alt_text}</p>
-            </section>`;
-        }
-        const labels = App.state.content.common.intensity_labels;
-        const catLabels = App.state.content.common.category_labels;
-        const doneBadge = w.completed ? `<div class="hero-done-badge">✓ ${App.state.content.activity_screen.completed}</div>` : '';
-        return `
-        <section class="hero-workout" id="t-hero">
-            ${doneBadge}
-            <div class="hero-workout-text">
-                <span class="hero-tag">${c.activity_recommendation}</span>
-                <h2 class="hero-workout-title">${esc(w.title)}</h2>
-                <p class="hero-workout-meta">${w.duration_min} мин · ${labels[w.intensity] || ''} · ${catLabels[w.category] || ''}</p>
-                <p class="hero-workout-meta">${esc(w.equipment)}</p>
-            </div>
-            <button class="btn btn-light" id="t-start-workout">${c.start_workout}</button>
-            <button class="link-btn" id="t-choose-other"
-                style="color:#FFF9F1;opacity:.9;position:relative;z-index:1;align-self:flex-start">
-                ${c.choose_other} →
-            </button>
-        </section>`;
-    }
-
-    // --- Карточка питания ---
-    function renderNutrition(c) {
-        const cycle = App.state.cycle;
-        const focus = (App.state.content.nutrition_focus || {})[cycle && cycle.phase]
-            || App.state.content.nutrition_screen.plate_text;
+    function renderNoCycle() {
+        const c = App.state.content.today_screen;
         return `
         <section class="card">
-            <h3>${c.nutrition_title}</h3>
-            <p class="subtitle">${focus}</p>
-            <button class="link-btn" id="t-nutrition-cta">${c.nutrition_cta} →</button>
+            <h3>${esc(c.cycle_no_data_title)}</h3>
+            <p class="subtitle">${esc(c.cycle_no_data_text)}</p>
+            <button class="btn btn-small" id="t-setup-cycle">${esc(c.cycle_setup)}</button>
         </section>`;
     }
 
-    // --- Карточка привычки дня ---
-    function renderHabit(c, t) {
-        const habits = t.habits || [];
-        if (!habits.length) {
-            return `
-            <section class="card">
-                <h3>${c.habit_title}</h3>
-                <p class="empty-hint">${App.state.content.habits_screen.empty}</p>
-                <button class="link-btn" id="t-add-habit">${App.state.content.habits_screen.add_title} →</button>
-            </section>`;
-        }
-        const h = habits[0];
-        const dots = Array.from({ length: h.week.target }, (_, i) =>
-            `<span class="habit-dot${i < h.week.done ? ' on' : ''}"></span>`).join('');
+    // --- 2. Hero текущей фазы (терракотовый градиент, фото справа) ---
+    function renderHero() {
+        const cycle = App.state.cycle;
+        const p = phaseInfo(cycle.phase);
         return `
-        <section class="card">
-            <h3>${c.habit_title}</h3>
-            <div class="habit-check-card">
-                <div class="habit-emoji-lg">${h.emoji || '🌱'}</div>
-                <div class="habit-info">
-                    <p class="habit-title">${esc(h.title)}</p>
-                    <div class="habit-progress-dots" title="${h.week.done}/${h.week.target}">${dots}</div>
-                    <p class="text-muted" id="t-habit-caption">${h.done_today ? c.habit_done : ''}</p>
+        <section class="td-hero" id="t-hero" role="button" tabindex="0"
+                 aria-label="${esc(p.name || '')}">
+            <img class="td-hero-img" src="img/hero-today.jpg" alt="">
+            <div class="td-hero-inner">
+                <span class="td-hero-badge">Сегодня</span>
+                <h2 class="td-hero-title">${esc(p.name || '')}</h2>
+                <p class="td-hero-meta">С ${p.from} по ${p.to} день цикла · Вы в середине фазы</p>
+                <div class="td-hero-notes">
+                    <span class="td-hero-note">${Components.icon('leaf', 16)} Энергия стабильна</span>
+                    <span class="td-hero-note">${Components.icon('clock', 16)} Поддержка энергии</span>
                 </div>
-                <button class="habit-toggle${h.done_today ? ' done' : ''}" id="t-habit-toggle">✓</button>
+                ${Components.pillButton('Подробнее ›', 'hero')}
             </div>
         </section>`;
     }
 
-    // --- Мини-чек-ин (автосохранение) + вода ---
-    function renderCheckin(c, t) {
+    // --- 3. Строка чек-ина (открывает шторку самочувствия) ---
+    function renderCheckinRow() {
+        return `
+        <button class="td-checkin" id="t-checkin">
+            <span class="td-checkin-icon">${Components.icon('lotus', 22)}</span>
+            <span class="td-checkin-text">
+                <span class="td-checkin-title">Как чувствует себя ваше тело?</span>
+                <span class="td-checkin-sub">Выберите, что вас сейчас беспокоит</span>
+            </span>
+            <span class="gf-chev">›</span>
+        </button>`;
+    }
+
+    // --- 4. Фазы цикла: чипы + 4 карточки ---
+    function renderPhases() {
+        const items = TODAY_PHASE_ORDER.map((key) => phaseInfo(key).short_name || phaseInfo(key).name);
+        const cards = TODAY_PHASE_ORDER.map((key) => {
+            const p = phaseInfo(key);
+            return `
+            <div class="td-phase" role="button" tabindex="0" data-phase="${key}">
+                <img class="td-phase-img" src="${esc(p.img || '')}" alt="" loading="lazy">
+                <span class="td-phase-body">
+                    <span class="td-phase-name">${esc(p.short_name || p.name)}</span>
+                    <span class="td-phase-meta">${p.from}–${p.to} день · ${esc(p.descriptor || '')}</span>
+                    <span class="td-phase-note">${Components.icon('leaf', 15)} ${esc(p.tagline || '')}</span>
+                </span>
+                <span class="td-phase-side">
+                    ${Components.pillButton('Подробнее', 'primary', true)}
+                    <span class="gf-chev">›</span>
+                </span>
+            </div>`;
+        }).join('');
+        return `
+        <section>
+            <div id="t-phases-head">${Components.sectionHeader('Фазы цикла', 'Подробнее')}</div>
+            <div class="td-chips">${Components.chips(items, 0)}</div>
+            <div class="td-phase-list">${cards}</div>
+        </section>`;
+    }
+
+    // --- 5. Активность недели ---
+    function renderActivityBlock() {
+        const labels = (App.state.content.common && App.state.content.common.day_names) || [];
+        const week = currentWeekDates();
+        const days = (progressData && progressData.days) || {};
+        const doneIdx = week
+            .map((iso, i) => (days[iso] && days[iso].workouts ? i : -1))
+            .filter((i) => i >= 0);
+        return `
+        <section class="td-activity" id="t-activity" role="button" tabindex="0" aria-label="Активность">
+            <div class="td-activity-head">
+                <span class="td-activity-ic">${Components.icon('footprints', 22)}</span>
+                <span class="td-activity-titles">
+                    <span class="td-activity-title">Активность</span>
+                    <span class="td-activity-sub">Двигайтесь к своим целям</span>
+                </span>
+                <span class="gf-chev">›</span>
+            </div>
+            <div class="td-activity-body">
+                <div class="td-activity-count">
+                    <span class="td-count">${doneIdx.length} / 7</span>
+                    <span class="td-count-cap">дней выполнено</span>
+                </div>
+                <div class="td-activity-week">${Components.weekDots(labels, doneIdx, labels)}</div>
+            </div>
+            <p class="td-activity-note">${Components.icon('leaf', 16)} Уже лучше, чем на прошлой неделе ♡</p>
+        </section>`;
+    }
+
+    // --- 6. За месяц ---
+    function renderMonth() {
+        const d = progressData || {};
+        const items = [
+            { value: String(d.workouts_completed || 0), label: 'фазовых тренировок' },
+            { value: String(d.active_minutes || 0), label: 'минут активности' },
+            { value: `${d.regularity_pct || 0}%`, label: 'выполнения плана' },
+        ];
+        return `
+        <section class="td-month">
+            <div class="td-month-head">
+                <span class="td-month-cap">За месяц</span>
+                <button class="gf-section-link" id="t-stats">Вся статистика <span class="gf-chev">›</span></button>
+            </div>
+            ${Components.statBlock(items)}
+        </section>`;
+    }
+
+    // --- Шторка чек-ина (самочувствие + вода) ---
+    function openCheckin() {
+        const c = App.state.content.today_screen;
         const gc = App.state.content.gamification;
+        const t = App.state.today;
         const wb = t.wellbeing;
-        const energy = wb ? wb.energy : null;
-        const mood = wb ? wb.mood : null;
-        const feeling = wb ? wb.feeling : null;
         const g = t.gamification || { water_glasses: 0, care_day: { water_norm: 8 } };
-        const norm = g.care_day.water_norm || 8;
+        const norm = (g.care_day && g.care_day.water_norm) || 8;
         const glasses = g.water_glasses || 0;
         const drops = Array.from({ length: norm }, (_, i) =>
             `<span class="water-drop${i < glasses ? ' full' : ''}">💧</span>`).join('');
         const scale = (emojis, value, cls) => emojis.map((e, i) =>
             `<button class="checkin-emoji${value === i + 1 ? ' active' : ''}"
                 data-scale="${cls}" data-value="${i + 1}">${e}</button>`).join('');
-        return `
-        <section class="card">
-            <div class="card-title-row">
-                <h3>${c.checkin_title}</h3>
-                <span class="text-muted" id="t-checkin-saved">${wb ? c.checkin_saved : ''}</span>
-            </div>
+        openModal(`
+            <h2>Как чувствует себя ваше тело?</h2>
+            <p class="subtitle">Выберите, что вас сейчас беспокоит</p>
             <div>
-                <p class="checkin-label">${gc.water_title} ·
-                    <span id="t-water-count">${glasses}</span> ${gc.water_hint.replace('{norm}', norm)}</p>
+                <p class="checkin-label">${esc(gc.water_title)} ·
+                    <span id="t-water-count">${glasses}</span> ${esc(gc.water_hint.replace('{norm}', norm))}</p>
                 <div class="water-row">
                     <button class="water-btn" id="t-water-minus" aria-label="Меньше">−</button>
                     <div class="water-drops" id="t-water-drops">${drops}</div>
@@ -240,110 +239,34 @@ App.screens.today = (() => {
                 </div>
             </div>
             <div>
-                <p class="checkin-label">${c.checkin_energy}</p>
-                <div class="checkin-row" id="t-energy">${scale(ENERGY_EMOJIS, energy, 'energy')}</div>
+                <p class="checkin-label">${esc(c.checkin_energy)}</p>
+                <div class="checkin-row">${scale(ENERGY_EMOJIS, wb ? wb.energy : null, 'energy')}</div>
             </div>
             <div>
-                <p class="checkin-label">${c.checkin_mood}</p>
-                <div class="checkin-row" id="t-mood">${scale(MOOD_EMOJIS, mood, 'mood')}</div>
+                <p class="checkin-label">${esc(c.checkin_mood)}</p>
+                <div class="checkin-row">${scale(MOOD_EMOJIS, wb ? wb.mood : null, 'mood')}</div>
             </div>
             <div>
-                <p class="checkin-label">${c.checkin_feeling}</p>
-                <div class="feeling-row" id="t-feeling">
+                <p class="checkin-label">${esc(c.checkin_feeling)}</p>
+                <div class="feeling-row">
                     ${FEELING_LABELS.map((label, i) =>
-                        `<button class="feeling-btn${feeling === i ? ' active' : ''}"
+                        `<button class="feeling-btn${wb && wb.feeling === i ? ' active' : ''}"
                             data-scale="feeling" data-value="${i}">${label}</button>`).join('')}
                 </div>
             </div>
-        </section>`;
-    }
-
-    // --- Прогресс дня ---
-    function renderProgress(c, t) {
-        const p = t.progress;
-        const items = [
-            { key: 'workout', done: Boolean(t.workout && t.workout.completed) },
-            { key: 'checkin', done: Boolean(t.wellbeing) },
-            { key: 'habit', done: (t.habits || []).some((h) => h.done_today) },
-        ];
-        const pct = p.total ? Math.round((p.done / p.total) * 100) : 0;
-        return `
-        <section class="card card-warm">
-            <div class="progress-line">
-                <h3>${c.progress_title}</h3>
-                <span class="progress-count">${p.done} ${c.progress_of} ${p.total}</span>
-            </div>
-            <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
-            <div class="day-tasks">
-                ${items.map((i) => `
-                    <div class="day-task${i.done ? ' done' : ''}">
-                        <span class="task-icon">✓</span>
-                        <span>${c.progress_items[i.key]}</span>
-                    </div>`).join('')}
-            </div>
-        </section>`;
-    }
-
-    // --- Привязка событий ---
-    function bindAll(c, t) {
-        const setupBtn = el('t-setup-cycle');
-        if (setupBtn) setupBtn.addEventListener('click', () => showMain('profile'));
-
-        const moreBtn = el('t-more-cycle');
-        if (moreBtn) moreBtn.addEventListener('click', () => showMain('cycle'));
-
-        const startBtn = el('t-start-workout');
-        if (startBtn) startBtn.addEventListener('click', () => {
-            App.screens.activity.openWorkout(t.workout);
-        });
-        const chooseBtn = el('t-choose-other');
-        if (chooseBtn) chooseBtn.addEventListener('click', () => showMain('activity'));
-
-        const nutriBtn = el('t-nutrition-cta');
-        if (nutriBtn) nutriBtn.addEventListener('click', () => showMain('nutrition'));
-
-        const levelCard = el('gf-level-card');
-        if (levelCard) levelCard.addEventListener('click', () => showScreen('levels'));
-
-        const waterMinus = el('t-water-minus');
-        if (waterMinus) {
-            waterMinus.addEventListener('click', () => changeWater(c, -1));
-            el('t-water-plus').addEventListener('click', () => changeWater(c, +1));
+            <p class="text-muted" id="t-checkin-saved">${wb ? esc(c.checkin_saved) : ''}</p>
+        `);
+        const minus = el('t-water-minus');
+        if (minus) {
+            minus.addEventListener('click', () => changeWater(-1));
+            el('t-water-plus').addEventListener('click', () => changeWater(+1));
         }
-
-        const addHabit = el('t-add-habit');
-        if (addHabit) addHabit.addEventListener('click', () => App.screens.habits.openAdd());
-
-        const habitToggle = el('t-habit-toggle');
-        if (habitToggle) habitToggle.addEventListener('click', async () => {
-            const h = (App.state.today.habits || [])[0];
-            if (!h) return;
-            habitToggle.disabled = true;
-            try {
-                const res = await apiPost(`/api/habits/${h.id}/toggle`, { date: todayISO() });
-                h.done_today = res.done;
-                if (res.done) h.week.done += 1;
-                else h.week.done = Math.max(0, h.week.done - 1);
-                App.state.today.progress.done = [
-                    Boolean(App.state.today.workout && App.state.today.workout.completed),
-                    Boolean(App.state.today.wellbeing),
-                    (App.state.today.habits || []).some((x) => x.done_today),
-                ].filter(Boolean).length;
-                render();
-            } catch (err) {
-                habitToggle.disabled = false;
-                const cap = el('t-habit-caption');
-                if (cap) cap.textContent = `Не сохранилось: ${apiErrorText(err)}`;
-            }
-        });
-
-        // Чек-ин: выбор сразу сохраняет (~30 секунд на весь чек-ин, без кнопки)
-        document.querySelectorAll('#today-content [data-scale]').forEach((btn) => {
-            btn.addEventListener('click', () => saveCheckin(c, btn));
+        document.querySelectorAll('#modal-root [data-scale]').forEach((btn) => {
+            btn.addEventListener('click', () => saveCheckin(btn));
         });
     }
 
-    async function changeWater(c, delta) {
+    async function changeWater(delta) {
         const g = App.state.today.gamification;
         const norm = (g.care_day && g.care_day.water_norm) || 8;
         const current = g.water_glasses || 0;
@@ -360,17 +283,16 @@ App.screens.today = (() => {
             g.water_glasses = current;
             drops.forEach((d, i) => d.classList.toggle('full', i < current));
             el('t-water-count').textContent = String(current);
-            const savedEl = el('t-checkin-saved');
-            if (savedEl) savedEl.textContent = `Не сохранилось: ${apiErrorText(err)}`;
+            el('t-checkin-saved').textContent = `Не сохранилось: ${apiErrorText(err)}`;
         }
     }
 
-    async function saveCheckin(c, clicked) {
+    async function saveCheckin(clicked) {
         const scale = clicked.dataset.scale;
         const value = parseInt(clicked.dataset.value, 10);
-        document.querySelectorAll(`#today-content [data-scale="${scale}"]`)
+        document.querySelectorAll(`#modal-root [data-scale="${scale}"]`)
             .forEach((b) => b.classList.toggle('active', b === clicked));
-
+        const c = App.state.content.today_screen;
         const current = App.state.today.wellbeing || {};
         const payload = {
             date: todayISO(),
@@ -381,23 +303,40 @@ App.screens.today = (() => {
         try {
             const saved = await apiPost('/api/wellbeing', payload);
             App.state.today.wellbeing = saved;
-            App.state.today.progress.done = [
-                Boolean(App.state.today.workout && App.state.today.workout.completed),
-                true,
-                (App.state.today.habits || []).some((x) => x.done_today),
-            ].filter(Boolean).length;
-            const savedEl = el('t-checkin-saved');
-            if (savedEl) savedEl.textContent = c.checkin_saved;
-            const progressCard = el('today-content').lastElementChild;
-            if (progressCard) {
-                const t = App.state.today;
-                progressCard.outerHTML = renderProgress(
-                    App.state.content.today_screen, t);
-            }
+            el('t-checkin-saved').textContent = c.checkin_saved;
         } catch (err) {
-            const savedEl = el('t-checkin-saved');
-            if (savedEl) savedEl.textContent = `Не сохранилось: ${apiErrorText(err)}`;
+            el('t-checkin-saved').textContent = `Не сохранилось: ${apiErrorText(err)}`;
         }
+    }
+
+    // --- События ---
+    function bindAll() {
+        const setup = el('t-setup-cycle');
+        if (setup) setup.addEventListener('click', () => showMain('profile'));
+
+        const hero = el('t-hero');
+        if (hero) hero.addEventListener('click', () =>
+            App.screens.cycle.openPhase(App.state.cycle.phase));
+
+        const checkin = el('t-checkin');
+        if (checkin) checkin.addEventListener('click', openCheckin);
+
+        const head = el('t-phases-head');
+        if (head) head.querySelector('.gf-section-link')
+            .addEventListener('click', () => showMain('cycle'));
+        document.querySelectorAll('#today-content .gf-chip').forEach((chip) => {
+            chip.addEventListener('click', () => showMain('cycle'));
+        });
+        document.querySelectorAll('#today-content .td-phase').forEach((card) => {
+            card.addEventListener('click', () =>
+                App.screens.cycle.openPhase(card.dataset.phase));
+        });
+
+        const activity = el('t-activity');
+        if (activity) activity.addEventListener('click', () => showMain('activity'));
+
+        const stats = el('t-stats');
+        if (stats) stats.addEventListener('click', () => showScreen('stats'));
     }
 
     return { onShow, render };

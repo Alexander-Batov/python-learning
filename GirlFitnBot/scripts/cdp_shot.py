@@ -141,10 +141,13 @@ def main() -> None:
 
         ws = WS(ws_url)
         ws.call("Page.enable", {}, 1)
+        # Кэш отключаем: иначе Chrome отдаёт старые JS/CSS из профиля
+        ws.call("Network.enable", {}, 2)
+        ws.call("Network.setCacheDisabled", {"cacheDisabled": True}, 3)
         ws.call("Emulation.setDeviceMetricsOverride",
                 {"width": width, "height": height, "deviceScaleFactor": 2,
-                 "mobile": True}, 2)
-        ws.call("Page.navigate", {"url": url}, 3)
+                 "mobile": True}, 4)
+        ws.call("Page.navigate", {"url": url}, 5)
         # ждём loadEventFired (максимум 25 сек), затем доигрываем анимации/данные
         deadline = time.time() + 25
         ws.sock.settimeout(max(1.0, deadline - time.time()))

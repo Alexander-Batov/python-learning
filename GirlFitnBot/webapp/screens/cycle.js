@@ -1,47 +1,45 @@
-// Экран «Цикл»: статус, календарь с отметками, симптомы по дням,
-// карточки 4 фаз, редактирование данных цикла. Календарная математика —
-// из cycle.js (CycleMath), рендер календаря перенесён из прежнего app.js.
+// Экран «Цикл» — вёрстка 1-в-1 с референсом (Экраны/Вторая вкладка.jpg).
+// Шапка «Мой цикл» → календарь месяца с фазовой раскраской → рекомендации.
+// Фазы/дни — из CycleMath; открытия фазы/дня и редактирование цикла сохранены.
 
 App.screens.cycle = (() => {
-    let symptomsByDate = {}; // 'YYYY-MM-DD' -> строка симптомов (точки в календаре)
+    let symptomsByDate = {}; // 'YYYY-MM-DD' -> запись симптомов (карточка дня)
+    let viewYear = null;     // просматриваемый месяц календаря (по умолчанию текущий)
+    let viewMonth = null;
+    let dailyWorkout = null; // тренировка дня для блока рекомендаций
+
+    const PHASE_CLASS = {
+        menstrual: 'cy-menstrual',
+        follicular: 'cy-follicular',
+        ovulatory: 'cy-ovulatory',
+        luteal: 'cy-luteal',
+    };
 
     async function onShow() {
-        const c = App.state.content.cycle_screen;
         if (App.state.cycleError) {
-            el('cycle-status').textContent = App.state.cycleError;
-            setHTML('cycle-content', '');
+            setHTML('cycle-content', errorState(
+                App.state.cycleError, 'App.screens.cycle.onShow'));
             return;
         }
         if (!App.state.user) {
             try {
                 await loadUser();
             } catch (err) {
-                el('cycle-status').textContent = `Не получилось загрузить: ${apiErrorText(err)}`;
+                setHTML('cycle-content', errorState(
+                    `Не получилось загрузить: ${apiErrorText(err)}`,
+                    'App.screens.cycle.onShow'));
                 return;
             }
         }
-        renderStatus(c);
+        const now = new Date();
+        if (viewYear === null) {
+            viewYear = now.getFullYear();
+            viewMonth = now.getMonth();
+        }
         setHTML('cycle-content', emptyState(App.state.content.common.loading));
         await loadSymptoms();
+        await loadDailyWorkout();
         render();
-    }
-
-    function renderStatus(c) {
-        const cycle = App.state.cycle;
-        if (!cycle) {
-            el('cycle-status').textContent = c.status_loading;
-            return;
-        }
-        if (cycle.overdue) {
-            el('cycle-status').textContent = App.state.content.overdue.short_text;
-        } else if (!cycle.phase) {
-            el('cycle-status').textContent =
-                `Отслеживание начнётся ${formatDayMonth(cycle.cycle_start)} — загляни в этот день 🌷`;
-        } else {
-            const phase = App.state.content.phases[cycle.phase];
-            el('cycle-status').textContent =
-                `${c.current_status}: ${cycle.cycle_day}-й день цикла · ${phase.name.toLowerCase()}`;
-        }
     }
 
     async function loadSymptoms() {
@@ -54,160 +52,241 @@ App.screens.cycle = (() => {
             const data = await apiGet(`/api/symptoms?from=${first}&to=${last}`);
             (data.items || []).forEach((row) => { symptomsByDate[row.date] = row; });
         } catch (err) {
-            console.error('[api] symptoms:', err); // точки — украшение, не ломаем экран
+            console.error('[api] symptoms:', err);
+        }
+    }
+
+    async function loadDailyWorkout() {
+        dailyWorkout = null;
+        try {
+            const data = await apiGet(`/api/workouts/daily?date=${todayISO()}`);
+            dailyWorkout = data.workout || null;
+        } catch (err) {
+            console.error('[api] workouts/daily:', err);
         }
     }
 
     function render() {
-        const c = App.state.content.cycle_screen;
         const cycle = App.state.cycle;
-        const parts = [];
+        const parts = [renderHeader()];
 
         if (!cycle || (!cycle.phase && !cycle.overdue)) {
+            const c = App.state.content.cycle_screen;
             parts.push(`
                 <section class="card">
-                    <h2>${c.no_data_title}</h2>
-                    <p class="subtitle">${c.no_data_text}</p>
-                    <button class="btn" id="cy-setup">${c.setup_button}</button>
+                    <h2>${esc(c.no_data_title)}</h2>
+                    <p class="subtitle">${esc(c.no_data_text)}</p>
+                    <button class="btn" id="cy-setup">${esc(c.setup_button)}</button>
                 </section>`);
-        }
-
-        if (cycle && cycle.overdue) {
-            parts.push(renderOverdue());
-        }
-
-        if (cycle && cycle.phase) {
+        } else {
+            parts.push(renderCalendarIntro());
             parts.push(renderCalendar());
-            parts.push(renderCurrentPhase());
+            if (cycle.overdue) parts.push(renderOverdue());
+            parts.push(renderRecommendations());
         }
 
-        parts.push(renderPhaseCards());
         setHTML('cycle-content', parts.join(''));
         bindAll();
+    }
+
+    // --- Шапка: «Мой цикл» по центру + иконка профиля ---
+    function renderHeader() {
+        return `
+        <header class="cy-head">
+            <h1 class="cy-title">Мой цикл</h1>
+            <button class="cy-profile" id="cy-profile" aria-label="Профиль">
+                ${Components.icon('user', 24)}
+            </button>
+        </header>`;
+    }
+
+    function renderCalendarIntro() {
+        const cycle = App.state.cycle;
+        const today = new Date();
+        const dateStr = today.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+        const dayStr = cycle.cycle_day
+            ? ` · ${cycle.cycle_day}-й день цикла`
+            : '';
+        return `
+        <div class="cy-intro">
+            <h2 class="cy-cal-title">Твой календарь <span class="cy-sprout">🌱</span></h2>
+            <p class="cy-today-line">Сегодня, ${esc(dateStr)}${esc(dayStr)}</p>
+        </div>`;
     }
 
     // --- Календарь месяца ---
     function renderCalendar() {
         const cycle = App.state.cycle;
-        const now = new Date();
-        // ru-RU даёт «октябрь 2026 г.» строчными — капитализируем первую букву
-        const titleRaw = now.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
-        const title = titleRaw.charAt(0).toUpperCase() + titleRaw.slice(1);
+        const titleRaw = new Date(viewYear, viewMonth, 1)
+            .toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+        const title = (titleRaw.charAt(0).toUpperCase() + titleRaw.slice(1))
+            .replace(' г.', '');
         const weeks = CycleMath.buildCalendarMonth(
-            now.getFullYear(), now.getMonth(),
+            viewYear, viewMonth,
             cycle.cycle_start, cycle.cycle_length, cycle.period_length,
         );
         const names = App.state.content.common.day_names;
         const cells = weeks.map((week) => week.map((cell) => {
-            const classes = ['day'];
-            if (!cell.inMonth) classes.push('other-month');
-            if (cell.isToday) classes.push('today');
-            const phase = cell.phase === CycleMath.PHASE.OVERDUE ? null : cell.phase;
-            const color = phase ? App.state.content.phases[phase].color : 'var(--surface-muted)';
-            const mark = symptomsByDate[cell.date] ? '<span class="symptom-mark"></span>' : '';
-            return `<button class="${classes.join(' ')}" style="background:${color};"
-                    data-date="${cell.date}">${cell.day}${mark}</button>`;
+            const cls = ['cy-day'];
+            if (!cell.inMonth) cls.push('cy-other');
+            if (cell.isToday) cls.push('cy-today');
+            const phaseKey = cell.phase === CycleMath.PHASE.OVERDUE ? null : cell.phase;
+            if (phaseKey && PHASE_CLASS[phaseKey]) cls.push(PHASE_CLASS[phaseKey]);
+            return `<button class="${cls.join(' ')}" data-date="${cell.date}">${cell.day}</button>`;
         }).join('')).join('');
 
         return `
-        <section class="card">
-            <div class="card-title-row">
-                <h2>${title}</h2>
+        <section class="cy-cal">
+            <div class="cy-cal-head">
+                <h2 class="cy-cal-month">${esc(title)}</h2>
+                <div class="cy-cal-nav">
+                    <button class="cy-nav-btn" id="cy-prev" aria-label="Предыдущий месяц">‹</button>
+                    <button class="cy-nav-btn" id="cy-next" aria-label="Следующий месяц">›</button>
+                </div>
             </div>
-            <div class="calendar-weekdays">${names.map((n) => `<span>${n}</span>`).join('')}</div>
-            <div class="calendar-grid">${cells}</div>
-            <div class="phase-legend" id="cy-legend">
-                ${Object.entries(App.state.content.phases).map(([key, p]) => `
-                    <button class="legend-chip" data-phase="${key}">
-                        <span class="legend-dot" style="background:${p.color};"></span>${p.name.replace(' фаза', '')}
+            <div class="cy-weekdays">${names.map((n) => `<span>${esc(n)}</span>`).join('')}</div>
+            <div class="cy-grid">${cells}</div>
+            <div class="cy-legend">
+                ${TODAY_PHASE_ORDER.map((key) => `
+                    <button class="cy-legend-item" data-phase="${key}">
+                        <span class="cy-legend-dot ${PHASE_CLASS[key]}"></span>
+                        ${esc(((App.state.content.phases[key] || {}).short_name) || key)}
                     </button>`).join('')}
             </div>
         </section>`;
     }
 
-    // --- Карточка текущей фазы ---
-    // Диапазон дней берём из CycleMath.phaseRanges — единый источник
-    // границ фаз (совпадает с раскраской календаря и серверным cycle.py)
-    function phaseDayRange(phaseKey, cycleLength, periodLength) {
-        const range = CycleMath.phaseRanges(cycleLength, periodLength)[phaseKey];
-        return range ? `Дни ${range[0]}–${range[1]}` : '';
-    }
-
-    function renderCurrentPhase() {
-        const c = App.state.content.cycle_screen;
+    // --- Рекомендации на сегодня ---
+    function renderRecommendations() {
         const cycle = App.state.cycle;
-        const phase = App.state.content.phases[cycle.phase];
-        return `
-        <section class="card">
-            <div class="phase-card-head" style="background:${phase.color};">
-                <span class="phase-name">${phase.name}</span>
-                <span class="phase-days">${phaseDayRange(cycle.phase, cycle.cycle_length, cycle.period_length)}</span>
-            </div>
-            <p class="subtitle">${phase.short || phase.description}</p>
-            <button class="btn btn-small" data-phase-open="${cycle.phase}">Подробнее</button>
-        </section>
-        <button class="btn btn-ghost" id="cy-edit">${c.edit_cycle}</button>`;
-    }
+        const phases = App.state.content.phases || {};
+        const focus = (App.state.content.nutrition_focus || {})[cycle.phase] || '';
+        const phaseName = (phases[cycle.phase] || {}).name || '';
 
-    // --- 4 карточки фаз ---
-    function renderPhaseCards() {
-        const c = App.state.content.cycle_screen;
+        const w = dailyWorkout;
+        const intensityWord = { easy: 'лёгкая', medium: 'умеренная', high: 'высокая' };
+        const catLabels = (App.state.content.common || {}).category_labels || {};
+        const workoutMeta1 = w
+            ? `${w.duration_min} мин · ${intensityWord[w.intensity] || ''} нагрузка`
+            : '';
+        const workoutMeta2 = w
+            ? `${catLabels[w.category] || ''}${w.equipment ? ` + ${w.equipment}` : ''}`
+            : '';
+
+        const cards = [];
+        if (w) {
+            cards.push(recCard({
+                img: 'img/rec-workout.jpg',
+                title: 'Тренировка для тебя',
+                meta: workoutMeta1,
+                note: workoutMeta2,
+                cta: 'Начать',
+                variant: 'primary',
+                action: 'workout',
+            }));
+        }
+        cards.push(recCard({
+            img: 'img/rec-food.jpg',
+            title: 'Питание для тебя',
+            meta: focus,
+            note: '',
+            cta: 'Посмотреть',
+            variant: 'secondary',
+            action: 'nutrition',
+        }));
+        cards.push(recCard({
+            img: 'img/rec-evening.jpg',
+            title: 'Вечернее восстановление',
+            meta: '10 минут без экрана перед сном',
+            note: 'Поможет поддержать расслабление и сон',
+            cta: 'Добавить привычку',
+            variant: 'secondary',
+            action: 'habits',
+        }));
+
         return `
-        <section class="card">
-            <h3>${c.phases_title}</h3>
-            <div class="stack">
-                ${Object.entries(App.state.content.phases).map(([key, p]) => `
-                    <button class="card card-warm" data-phase-open="${key}"
-                        style="cursor:pointer;text-align:left;font-family:var(--font-body);color:var(--text-primary);padding:14px;">
-                        <div class="flex-between">
-                            <div>
-                                <p class="habit-title">${p.name}</p>
-                                <p class="text-muted">${p.days}</p>
-                            </div>
-                            <div class="flex-row" style="gap:8px;flex-shrink:0;">
-                                <span class="legend-dot" style="background:${p.color};width:14px;height:14px;"></span>
-                                <span class="link-btn" style="padding:0;">Подробнее →</span>
-                            </div>
-                        </div>
-                    </button>`).join('')}
+        <section>
+            <div class="cy-rec-head">
+                <h2 class="gf-section-title">Рекомендации на сегодня</h2>
+                <span class="cy-phase-pill">${esc(phaseName)}</span>
             </div>
+            <p class="cy-rec-sub">Поддержи энергию, сон и спокойный ритм</p>
+            <div class="cy-rec-list">${cards.join('')}</div>
         </section>`;
     }
 
-    // --- Задержка: заботливая карточка (перенесена из прежнего демо) ---
+    function recCard({ img, title, meta, note, cta, variant, action }) {
+        return `
+        <div class="cy-rec" data-action="${action}" role="button" tabindex="0">
+            <img class="cy-rec-img" src="${esc(img)}" alt="" loading="lazy">
+            <div class="cy-rec-body">
+                <h3 class="cy-rec-title">${esc(title)}</h3>
+                <p class="cy-rec-meta">${esc(meta)}</p>
+                ${note ? `<p class="cy-rec-note">${esc(note)}</p>` : ''}
+            </div>
+            <div class="cy-rec-side">
+                ${Components.pillButton(cta, variant, true)}
+                <span class="gf-chev">›</span>
+            </div>
+        </div>`;
+    }
+
+    // --- Задержка цикла: заботливая карточка ---
     function renderOverdue() {
         const o = App.state.content.overdue;
         return `
         <section class="card card-warm">
-            <h2>${o.title}</h2>
-            <p class="subtitle">${o.intro}</p>
-            <ul style="padding-left:18px;display:flex;flex-direction:column;gap:6px;">
-                ${o.reasons.map((r) => `<li style="font-size:13.5px;">${r}</li>`).join('')}
+            <h2>${esc(o.title)}</h2>
+            <p class="subtitle">${esc(o.intro)}</p>
+            <ul class="cy-overdue-list">
+                ${o.reasons.map((r) => `<li>${esc(r)}</li>`).join('')}
             </ul>
-            <p class="text-muted" style="font-style:italic">${o.disclaimer}</p>
+            <p class="text-muted" style="font-style:italic">${esc(o.disclaimer)}</p>
             <div class="flex-row">
-                <button class="btn btn-small" id="cy-overdue-started">${o.button_started}</button>
-                <button class="btn btn-small btn-ghost" id="cy-overdue-edit">${o.button_edit}</button>
+                <button class="btn btn-small" id="cy-overdue-started">${esc(o.button_started)}</button>
+                <button class="btn btn-small btn-ghost" id="cy-overdue-edit">${esc(o.button_edit)}</button>
             </div>
         </section>`;
     }
 
+    function shiftMonth(delta) {
+        const d = new Date(viewYear, viewMonth + delta, 1);
+        viewYear = d.getFullYear();
+        viewMonth = d.getMonth();
+        render();
+    }
+
     function bindAll() {
+        const profile = el('cy-profile');
+        if (profile) profile.addEventListener('click', () => showMain('profile'));
+
         const setup = el('cy-setup');
         if (setup) setup.addEventListener('click', openEditSheet);
 
-        document.querySelectorAll('#cycle-content .day').forEach((btn) => {
+        const prev = el('cy-prev');
+        if (prev) prev.addEventListener('click', () => shiftMonth(-1));
+        const next = el('cy-next');
+        if (next) next.addEventListener('click', () => shiftMonth(1));
+
+        document.querySelectorAll('#cycle-content .cy-day').forEach((btn) => {
             btn.addEventListener('click', () => openDay(btn.dataset.date));
         });
-        document.querySelectorAll('#cy-legend .legend-chip').forEach((chip) => {
+        document.querySelectorAll('#cycle-content .cy-legend-item').forEach((chip) => {
             chip.addEventListener('click', () => openPhase(chip.dataset.phase));
         });
-        document.querySelectorAll('[data-phase-open]').forEach((btn) => {
-            btn.addEventListener('click', () => openPhase(btn.dataset.phaseOpen));
-        });
 
-        const edit = el('cy-edit');
-        if (edit) edit.addEventListener('click', openEditSheet);
+        document.querySelectorAll('#cycle-content .cy-rec').forEach((card) => {
+            card.addEventListener('click', () => {
+                const action = card.dataset.action;
+                if (action === 'workout' && dailyWorkout) {
+                    App.screens.activity.openWorkout(dailyWorkout);
+                } else if (action === 'nutrition') {
+                    showMain('nutrition');
+                } else if (action === 'habits') {
+                    showMain('habits');
+                }
+            });
+        });
 
         const started = el('cy-overdue-started');
         if (started) started.addEventListener('click', async () => {
@@ -228,7 +307,7 @@ App.screens.cycle = (() => {
         if (overdueEdit) overdueEdit.addEventListener('click', openEditSheet);
     }
 
-    // --- Страница фазы ---
+    // --- Страница фазы (подэкран, сохранён) ---
     async function openPhase(key) {
         const phase = App.state.content.phases[key];
         const header = el('phase-header');
@@ -239,7 +318,6 @@ App.screens.cycle = (() => {
 
         const section = (title, body) => `<div class="card"><h3>${title}</h3>${body}</div>`;
 
-        // Тренировки фазы — из общей библиотеки (не индивидуальный план)
         let workoutsHtml = '';
         try {
             const data = await apiGet(`/api/workouts?date=${todayISO()}`);
@@ -281,7 +359,7 @@ App.screens.cycle = (() => {
         showScreen('phase');
     }
 
-    // --- Карточка дня: фаза + симптомы ---
+    // --- Карточка дня: фаза + симптомы (подэкран, сохранён) ---
     async function openDay(dateISO) {
         const c = App.state.content.cycle_screen;
         const cycle = App.state.cycle;
@@ -328,7 +406,7 @@ App.screens.cycle = (() => {
                 <div class="card">
                     <h2 style="text-transform:capitalize">${formatFullDate(dateISO)}</h2>
                     <button class="option-chip" data-phase-open-day="${phaseKey}"
-                        style="background:${phase.color};border-color:${phase.color};color:#373723;">
+                        style="background:${phase.color};border-color:${phase.color};color:var(--olive);">
                         ${phase.name}
                     </button>
                 </div>`;
@@ -467,7 +545,7 @@ App.screens.cycle = (() => {
         });
     }
 
-    // --- Редактирование данных цикла (дата, длина, длительность) ---
+    // --- Редактирование данных цикла ---
     function openEditSheet() {
         const c = App.state.content.cycle_screen;
         const cycle = App.state.cycle || (App.state.user && App.state.user.cycle) || {};

@@ -1,283 +1,208 @@
-// Экран «Питание»: фокус дня, конструктор тарелки, рецепты с фильтрами,
-// трекер приёмов пищи (только факт отметки), питание по фазам, регулярность.
+// Экран «Питание» — вёрстка 1-в-1 с референсом (Экраны/Четверный экран.jpg).
+// Шапка с карточкой цикла → правило тарелки → питание по фазам (скролл) →
+// правило «ладошка — кулак». Конструктор тарелки и рецепты сохранены.
 
 App.screens.nutrition = (() => {
-    const filters = { category: '', tag: '' };
-    let recipesCache = null;
-    let progressCache = null;
 
     async function onShow() {
-        el('nutrition-subtitle').textContent =
-            App.state.content.nutrition_screen.subtitle;
-        el('nutrition-info').onclick = () => {
-            const c = App.state.content.nutrition_screen;
-            infoSheet(c.disclaimer_title, c.disclaimer_text);
-        };
-        setHTML('nutrition-content', emptyState(App.state.content.common.loading));
-        try {
-            const now = new Date();
-            const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            [recipesCache, progressCache] = await Promise.all([
-                apiGet('/api/recipes'),
-                apiGet(`/api/progress?month=${month}&date=${todayISO()}`),
-                loadNutrition(),
-            ]);
-            render();
-        } catch (err) {
+        if (App.state.cycleError) {
             setHTML('nutrition-content', errorState(
-                `Не получилось загрузить питание: ${apiErrorText(err)}`,
-                'App.screens.nutrition.onShow'));
+                App.state.cycleError, 'App.screens.nutrition.onShow'));
+            return;
         }
-    }
-
-    async function loadNutrition() {
-        App.state.nutrition = await apiGet(`/api/nutrition?date=${todayISO()}`);
+        if (!App.state.user) {
+            try {
+                await loadUser();
+            } catch (err) {
+                setHTML('nutrition-content', errorState(
+                    `Не получилось загрузить: ${apiErrorText(err)}`,
+                    'App.screens.nutrition.onShow'));
+                return;
+            }
+        }
+        render();
     }
 
     function render() {
-        const c = App.state.content.nutrition_screen;
-        setHTML('nutrition-content', [
-            renderCycleCard(c),
-            renderFocus(c),
-            renderNotice(c),
-            renderCookToday(c),
-            renderRecipes(c),
-            renderPhasesNav(c),
-            renderTracker(c),
-            renderRegularity(c),
-        ].join(''));
-        bindAll(c);
-    }
-
-    function renderCycleCard(c) {
         const cycle = App.state.cycle;
-        if (!cycle || !cycle.phase) {
-            return `
-            <section class="card card-warm">
-                <h3>${c.focus_title}</h3>
-                <p class="subtitle">${c.plate_text}</p>
-                <button class="btn btn-small" id="nu-setup">${c.no_cycle_setup}</button>
-            </section>`;
-        }
-        const phase = App.state.content.phases[cycle.phase];
-        const focus = App.state.content.nutrition_focus[cycle.phase] || '';
+        const noCycle = !cycle || cycle.cycle_day === null || !cycle.phase;
+        setHTML('nutrition-content', [
+            renderHeader(),
+            noCycle ? renderNoCycle() : renderPlateRule(),
+            renderPhasesFood(),
+            renderHandRule(),
+        ].join(''));
+        bindAll();
+    }
+
+    // --- Шапка: «Питание» + веточка + карточка цикла + подпись ---
+    function renderHeader() {
+        const cycle = App.state.cycle;
+        const phase = cycle && cycle.phase
+            ? (App.state.content.phases[cycle.phase] || {}).name
+            : '';
+        const card = (cycle && cycle.cycle_day !== null && cycle.phase)
+            ? Components.cycleCard(cycle.cycle_day, phase)
+            : Components.cycleCard('—', 'Цикл не настроен');
+        return `
+        <header class="td-header">
+            <div class="td-header-text">
+                <h1 class="gf-screen-title">Питание</h1>
+                <p class="td-sub">Забота о себе — это энергия<br>для твоих целей</p>
+            </div>
+            <div class="td-header-side">
+                ${Components.branch(54, 84)}
+                ${card}
+            </div>
+        </header>`;
+    }
+
+    function renderNoCycle() {
+        const c = App.state.content.cycle_screen;
         return `
         <section class="card">
-            <div class="flex-between">
-                <div>
-                    <h3>${c.focus_title}</h3>
-                    <p class="text-muted">День ${cycle.cycle_day} · ${phase.name.toLowerCase()}</p>
+            <h3>${esc(c.no_data_title)}</h3>
+            <p class="subtitle">${esc(c.no_data_text)}</p>
+            <button class="btn btn-small" id="nt-setup">${esc(c.setup_button)}</button>
+        </section>`;
+    }
+
+    // --- Правило тарелки ---
+    function renderPlateRule() {
+        const r = App.state.content.nutrition_screen.plate_rule;
+        return `
+        <section>
+            <div class="gf-section-header">
+                <h2 class="gf-section-title">${esc(r.title)}</h2>
+                <button type="button" class="gf-pill gf-pill-secondary gf-pill-sm" id="nt-plate-more">Подробнее ›</button>
+            </div>
+            <p class="nt-plate-sub">${esc(r.sub)}</p>
+            <div class="nt-plate">
+                <div class="nt-plate-left">
+                    <div class="nt-plate-txt">
+                        <span class="nt-plate-pct">50%</span>
+                        <span class="nt-plate-cap">${esc(r.veg_label)}</span>
+                    </div>
+                    ${Components.icon('arrow', 24)}
                 </div>
-                <span class="legend-dot" style="background:${phase.color};width:14px;height:14px;"></span>
+                <img class="nt-plate-img" src="img/plate.jpg" alt="Тарелка по правилу 50/25/25">
+                <div class="nt-plate-right">
+                    <div class="nt-plate-item">
+                        ${Components.icon('arrow', 24)}
+                        <div class="nt-plate-txt">
+                            <span class="nt-plate-pct">25%</span>
+                            <span class="nt-plate-name">${esc(r.protein_label)}</span>
+                            <span class="nt-plate-desc">${esc(r.protein_sub)}</span>
+                        </div>
+                    </div>
+                    <div class="nt-plate-item">
+                        ${Components.icon('arrow', 24)}
+                        <div class="nt-plate-txt">
+                            <span class="nt-plate-pct">25%</span>
+                            <span class="nt-plate-name">${esc(r.carbs_label)}</span>
+                            <span class="nt-plate-desc">${esc(r.carbs_sub)}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <p class="subtitle">${focus}</p>
-            <button class="link-btn" id="nu-phase-more">${c.cycle_card_more} →</button>
+            <div class="nt-note">
+                <span class="nt-note-icon">${Components.icon('leaf', 18)}</span>
+                <p>${esc(r.note)}</p>
+            </div>
         </section>`;
     }
 
-    function renderFocus(c) {
+    // --- Питание по фазам цикла ---
+    const PHASE_ICON = { menstrual: 'drop', follicular: 'leaf', ovulatory: 'sun', luteal: 'moon' };
+    const PHASE_TINT = { menstrual: 'nt-pink', follicular: 'nt-green', ovulatory: 'nt-pink', luteal: 'nt-pink' };
+
+    function renderPhasesFood() {
+        const ns = App.state.content.nutrition_screen;
+        const phases = App.state.content.phases;
+        const cards = TODAY_PHASE_ORDER.map((key) => `
+            <div class="nt-phase-card ${PHASE_TINT[key]}" data-phase="${key}" role="button" tabindex="0">
+                <span class="nt-phase-icon">${Components.icon(PHASE_ICON[key] || 'leaf', 22)}</span>
+                <span class="nt-phase-name">${esc((phases[key] || {}).name || '')}</span>
+                <span class="nt-phase-text">${esc((phases[key] || {}).food_focus || '')}</span>
+            </div>`).join('');
         return `
-        <section class="card">
-            <h3>${c.plate_title}</h3>
-            <div class="plate-visual">
-                <div class="plate-circle"></div>
-                <ul class="plate-legend">
-                    <li><span class="plate-dot plate-dot-veg"></span>½ овощи и фрукты</li>
-                    <li><span class="plate-dot plate-dot-protein"></span>¼ белок</li>
-                    <li><span class="plate-dot plate-dot-carbs"></span>¼ сложные углеводы</li>
-                    <li><span class="plate-dot plate-dot-fats"></span>+ немного полезных жиров</li>
-                </ul>
+        <section>
+            <h2 class="gf-section-title">${esc(ns.phases_food_title)}</h2>
+            <p class="nt-plate-sub">${esc(ns.phases_food_sub)}</p>
+            <div class="nt-phases-wrap">
+                <div class="nt-phases-scroll" id="nt-phases-scroll">
+                    <div class="nt-phases-track">${cards}</div>
+                </div>
+                <div class="nt-dots" id="nt-dots">
+                    ${TODAY_PHASE_ORDER.map((_, i) => `<span class="nt-dot${i === 0 ? ' active' : ''}"></span>`).join('')}
+                </div>
             </div>
-            <button class="btn btn-small btn-olive" id="nu-plate-cta">${c.plate_cta}</button>
         </section>`;
     }
 
-    function renderNotice(c) {
+    // --- Правило ладошка — кулак ---
+    function renderHandRule() {
+        const hr = App.state.content.nutrition_screen.hand_rule;
         return `
-        <section class="stack" style="gap:10px;">
-            <h3>${c.notice_title}</h3>
-            <div class="notice-scroll">
-                ${c.notice.map((n) => `
-                    <div class="notice-card">
-                        <span class="notice-emoji">${n.emoji}</span>
-                        <span class="notice-title">${n.title}</span>
-                        <span class="notice-why">${n.why}</span>
+        <section>
+            <div class="gf-section-header">
+                <h2 class="gf-section-title">${esc(hr.title)}</h2>
+                <button type="button" class="gf-pill gf-pill-secondary gf-pill-sm" id="nt-hand-more">Подробнее ›</button>
+            </div>
+            <p class="nt-plate-sub">${esc(hr.sub)}</p>
+            <div class="nt-hands">
+                ${hr.items.map((it) => `
+                    <div class="nt-hand">
+                        <span class="nt-hand-circle"><img src="${esc(it.img)}" alt="" loading="lazy"></span>
+                        <span class="nt-hand-caption">${esc(it.caption)}</span>
+                        <span class="nt-hand-detail">${esc(it.detail)}</span>
+                        <span class="nt-hand-note">${esc(it.note)}</span>
                     </div>`).join('')}
             </div>
         </section>`;
     }
 
-    function renderCookToday(c) {
-        const labels = App.state.content.common.meal_labels;
-        const byCat = {};
-        (recipesCache.items || []).forEach((r) => {
-            if (!byCat[r.category]) byCat[r.category] = r;
-        });
-        const emoji = { breakfast: '🍳', lunch: '🥗', dinner: '🍲', snack: '🍎' };
-        return `
-        <section class="stack" style="gap:10px;">
-            <div class="card-title-row">
-                <h3>${c.cook_title}</h3>
-                <button class="link-btn" id="nu-all-recipes">${c.all_recipes} →</button>
-            </div>
-            <div class="meal-cards">
-                ${Object.entries(labels).map(([key, label]) => {
-                    const r = byCat[key];
-                    return `
-                    <button class="meal-card" data-cat="${key}">
-                        <span class="meal-card-emoji">${emoji[key] || '🍽'}</span>
-                        <span class="meal-card-title">${label}</span>
-                        <span class="meal-card-meta">${r ? `${r.time_min} мин · ${r.ingredients.length} инг.` : 'скоро'}</span>
-                    </button>`;
-                }).join('')}
-            </div>
-        </section>`;
-    }
-
-    function renderRecipes(c) {
-        const catRow = [{ id: '', label: 'Все' }].concat(c.categories)
-            .map((f) => `<button class="filter-chip${filters.category === f.id ? ' active' : ''}"
-                data-group="category" data-id="${f.id}">${f.label}</button>`).join('');
-        const tagRow = [{ id: '', label: 'Все' }].concat(c.tags)
-            .map((f) => `<button class="filter-chip${filters.tag === f.id ? ' active' : ''}"
-                data-group="tag" data-id="${f.id}">${f.label}</button>`).join('');
-        const items = (recipesCache.items || []).filter((r) => {
-            if (filters.category && r.category !== filters.category) return false;
-            if (filters.tag && !(r.tags || []).includes(filters.tag)) return false;
-            return true;
-        });
-        const emoji = { breakfast: '🍳', lunch: '🥗', dinner: '🍲', snack: '🍎' };
-        return `
-        <section class="stack" id="nu-recipes" style="gap:10px;">
-            <h3>${c.all_recipes.replace(' →', '')}</h3>
-            <div class="filter-row">${catRow}</div>
-            <div class="filter-row">${tagRow}</div>
-            <div class="recipes-grid">
-                ${items.map((r) => `
-                    <button class="card recipe-card" data-recipe="${r.id}">
-                        <div class="recipe-thumb">${emoji[r.category] || '🍽'}</div>
-                        <p class="workout-card-title">${esc(r.title)}</p>
-                        <p class="text-muted">${r.time_min} ${c.minutes_word} · ${r.ingredients.length} ${c.ingredients_word}</p>
-                    </button>`).join('') || emptyState(c.empty)}
-            </div>
-        </section>`;
-    }
-
-    function renderPhasesNav(c) {
-        const cycle = App.state.cycle;
-        const current = cycle && cycle.phase;
-        return `
-        <section class="stack" style="gap:10px;">
-            <h3>${c.phases_nav_title}</h3>
-            <div class="filter-row">
-                ${Object.entries(App.state.content.phases).map(([key, p]) => `
-                    <button class="filter-chip${key === current ? ' active' : ''}"
-                        data-phase="${key}">${p.name.replace(' фаза', '')}</button>`).join('')}
-            </div>
-        </section>`;
-    }
-
-    function renderTracker(c) {
-        const meals = (App.state.nutrition && App.state.nutrition.meals) || {};
-        const labels = App.state.content.common.meal_labels;
-        return `
-        <section class="card">
-            <h3>${c.tracker_title}</h3>
-            <p class="text-muted">${c.tracker_hint}</p>
-            <div class="meal-tracker">
-                ${Object.entries(labels).map(([key, label]) => `
-                    <button class="meal-toggle${meals[key] ? ' active' : ''}" data-meal="${key}">${label}</button>`).join('')}
-            </div>
-        </section>`;
-    }
-
-    function renderRegularity(c) {
-        if (!progressCache) return '';
-        const days = Object.values(progressCache.days || {});
-        const withFood = days.filter((d) => d.nutrition > 0).length;
-        const weeksWithFood = (progressCache.weeks || []).filter((w) => {
-            // неделя считается «с питанием», если хотя бы один день покрыт питанием
-            const from = w.from, to = w.to;
-            return Object.entries(progressCache.days).some(([date, d]) =>
-                d.nutrition > 0 && date >= from && date <= to);
-        }).length;
-        return `
-        <section class="card card-warm">
-            <h3>${c.regularity_title}</h3>
-            <p class="subtitle">${c.regularity_days} <b>${withFood} из ${days.length}</b> дней</p>
-            <p class="text-muted">${weeksWithFood} ${c.regularity_weeks}</p>
-        </section>`;
-    }
-
-    function bindAll(c) {
-        const setup = el('nu-setup');
+    function bindAll() {
+        const setup = el('nt-setup');
         if (setup) setup.addEventListener('click', () => App.screens.cycle.openEditSheet());
 
-        const more = el('nu-phase-more');
-        if (more) more.addEventListener('click', () => {
-            const phase = App.state.cycle && App.state.cycle.phase;
-            if (phase) App.screens.cycle.openPhase(phase);
+        const plateMore = el('nt-plate-more');
+        if (plateMore) plateMore.addEventListener('click', openPlateBuilder);
+
+        document.querySelectorAll('#nutrition-content .nt-phase-card').forEach((card) => {
+            card.addEventListener('click', () => App.screens.cycle.openPhase(card.dataset.phase));
         });
 
-        el('nu-plate-cta').addEventListener('click', openPlateBuilder);
+        // Пагинационные точки следят за скроллом карточек фаз
+        const scroller = el('nt-phases-scroll');
+        if (scroller) {
+            scroller.addEventListener('scroll', () => {
+                const card = scroller.querySelector('.nt-phase-card');
+                if (!card) return;
+                const step = card.offsetWidth + 10;
+                const idx = Math.min(
+                    TODAY_PHASE_ORDER.length - 1,
+                    Math.round(scroller.scrollLeft / step));
+                document.querySelectorAll('#nt-dots .nt-dot').forEach((d, i) => {
+                    d.classList.toggle('active', i === idx);
+                });
+            }, { passive: true });
+        }
 
-        el('nu-all-recipes').addEventListener('click', () => {
-            el('nu-recipes').scrollIntoView({ behavior: 'smooth' });
-        });
-
-        document.querySelectorAll('#nutrition-content .meal-card').forEach((card) => {
-            card.addEventListener('click', () => {
-                filters.category = card.dataset.cat;
-                filters.tag = '';
-                render();
-                el('nu-recipes').scrollIntoView({ behavior: 'smooth' });
+        const handMore = el('nt-hand-more');
+        if (handMore) {
+            handMore.addEventListener('click', () => {
+                const hr = App.state.content.nutrition_screen.hand_rule;
+                infoSheet(hr.title,
+                    'Ориентируйся на размер своей ладони: белок — одна ладонь, '
+                    + 'сложные углеводы — кулак, овощи — две ладони, жиры — большой палец. '
+                    + 'Это мягкий ориентир, который помогает собирать сбалансированную тарелку '
+                    + 'без взвешивания и подсчётов.');
             });
-        });
-
-        document.querySelectorAll('#nutrition-content .filter-chip[data-group]').forEach((chip) => {
-            chip.addEventListener('click', () => {
-                filters[chip.dataset.group] = chip.dataset.id;
-                render();
-            });
-        });
-
-        document.querySelectorAll('#nutrition-content [data-recipe]').forEach((card) => {
-            card.addEventListener('click', () => openRecipe(Number(card.dataset.recipe)));
-        });
-
-        document.querySelectorAll('#nutrition-content [data-phase]').forEach((chip) => {
-            chip.addEventListener('click', () => App.screens.cycle.openPhase(chip.dataset.phase));
-        });
-
-        document.querySelectorAll('#nutrition-content .meal-toggle').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                const meal = btn.dataset.meal;
-                const meals = { ...(App.state.nutrition.meals || {}) };
-                meals[meal] = meals[meal] ? 0 : 1;
-                btn.classList.toggle('active', Boolean(meals[meal]));
-                try {
-                    const res = await apiPost('/api/nutrition', { date: todayISO(), ...meals });
-                    App.state.nutrition.meals = res.meals;
-                    renderRegularityOnly(c);
-                } catch (err) {
-                    btn.classList.toggle('active', !meals[meal]);
-                    infoSheet(c.tracker_title, `Не сохранилось: ${apiErrorText(err)}`);
-                }
-            });
-        });
-    }
-
-    function renderRegularityOnly(c) {
-        // После отметки приёма пищи мягко обновляем блок регулярности
-        const html = renderRegularity(c);
-        const cards = document.querySelectorAll('#nutrition-content > *');
-        if (cards.length) {
-            const last = cards[cards.length - 1];
-            if (last.classList.contains('card-warm')) last.outerHTML = html;
         }
     }
 
-    // --- Экран рецепта ---
+    // --- Экран рецепта (сохранён) ---
     async function openRecipe(id) {
         setHTML('recipe-card', emptyState(App.state.content.common.loading));
         showScreen('recipe');
@@ -313,11 +238,10 @@ App.screens.nutrition = (() => {
         `);
     }
 
-    // --- Конструктор тарелки ---
+    // --- Конструктор тарелки (сохранён) ---
     const builder = { step: 0, picked: {} };
 
     function openPlateBuilder() {
-        const c = App.state.content.nutrition_screen;
         builder.step = 0;
         builder.picked = {};
         renderBuilder();

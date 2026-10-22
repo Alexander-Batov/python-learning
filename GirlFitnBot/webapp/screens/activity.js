@@ -1,14 +1,23 @@
-// Экран «Активность»: тренировка дня, фильтры, каталог, статистика недели/месяца,
-// плеер тренировки (до → во время → после). Пропуск дня — без негатива.
+// Экран «Активность» — вёрстка 1-в-1 с референсом (Экраны/Третья вкладка.jpg).
+// Шапка → «Твоя активность» (кольцо недели) → hero тренировки дня → каталог с
+// фильтрами-категориями → блок «Активность на сегодня» и месяц.
+// Плеер тренировки (до → во время → после) сохранён без изменений.
 
 App.screens.activity = (() => {
     const filters = { category: 'all', duration: '', intensity: '' };
     let catalogCache = null;
     let progressCache = null;
+    let showAll = false;
+
+    const CATEGORY_IMG = {
+        yoga: 'img/workout-yoga.jpg',
+        stretching: 'img/workout-stretch.jpg',
+        cardio: 'img/workout-cardio.jpg',
+        strength: 'img/rec-workout.jpg',
+        recovery: 'img/rec-evening.jpg',
+    };
 
     async function onShow() {
-        el('activity-subtitle').textContent =
-            App.state.content.activity_screen.subtitle;
         setHTML('activity-content', emptyState(App.state.content.common.loading));
         try {
             await Promise.all([loadDaily(), loadProgress()]);
@@ -31,22 +40,91 @@ App.screens.activity = (() => {
     }
 
     function render() {
-        const c = App.state.content.activity_screen;
         const items = catalogCache ? catalogCache.items : [];
-        const daily = pickDaily(items);
         setHTML('activity-content', [
-            renderTodayCard(c, daily),
-            renderAltCard(c),
-            renderFilters(c),
-            renderCatalog(c, items),
-            renderWeek(c),
-            renderMonth(c),
+            renderHeader(),
+            renderWeekCard(),
+            renderTodayCard(items),
+            renderCatalogHead(),
+            renderCatalog(items),
+            renderBottomBlock(),
         ].join(''));
-        bindAll(c, items);
+        bindAll(items);
     }
 
+    // --- Шапка: «Активность 🌱» + профиль + веточка + подзаголовок ---
+    function renderHeader() {
+        return `
+        <header class="ac-head">
+            <div class="ac-head-text">
+                <h1 class="cy-title">Активность <span class="cy-sprout">🌱</span></h1>
+                <p class="ac-sub">Движение — это забота о себе.
+                Физическая активность поддерживает энергию,
+                улучшает настроение и помогает чувствовать баланс.</p>
+            </div>
+            <div class="ac-head-side">
+                <button class="cy-profile" id="ac-profile" aria-label="Профиль">
+                    ${Components.icon('user', 24)}
+                </button>
+                ${Components.branch(54, 84)}
+            </div>
+        </header>`;
+    }
+
+    // --- «Твоя активность»: кольцо недели + кружки дней ---
+    function weekStats() {
+        const names = App.state.content.common.day_names;
+        const today = dateFromISO(todayISO());
+        const dow = (today.getDay() + 6) % 7;
+        const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - dow);
+        const days = (progressCache && progressCache.days) || {};
+        const doneIdx = [];
+        names.forEach((_, i) => {
+            const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+            const iso = CycleMath.toISODate(d);
+            if (days[iso] && days[iso].workouts > 0) doneIdx.push(i);
+        });
+        return { names, doneIdx };
+    }
+
+    function renderWeekCard() {
+        if (!progressCache) return '';
+        const { names, doneIdx } = weekStats();
+        const pct = doneIdx.length / 7;
+        const R = 38;
+        const CIRC = 2 * Math.PI * R;
+        return `
+        <section class="ac-week card-like" id="ac-week">
+            <div class="ac-week-top">
+                <div class="ac-ring">
+                    <svg width="92" height="92" viewBox="0 0 92 92" aria-hidden="true">
+                        <circle cx="46" cy="46" r="${R}" stroke="var(--border)" stroke-width="7" fill="none"/>
+                        <circle cx="46" cy="46" r="${R}" stroke="var(--olive)" stroke-width="7" fill="none"
+                            stroke-linecap="round" stroke-dasharray="${CIRC.toFixed(1)}"
+                            stroke-dashoffset="${(CIRC * (1 - pct)).toFixed(1)}"
+                            transform="rotate(-90 46 46)"/>
+                    </svg>
+                    <div class="ac-ring-center">
+                        <span class="ac-ring-num">${doneIdx.length}/7</span>
+                        <span class="ac-ring-cap">дней выполнено</span>
+                    </div>
+                </div>
+                <div class="ac-week-side">
+                    <p class="ac-week-title">Твоя активность</p>
+                    <p class="ac-week-sub">На этой неделе</p>
+                    ${Components.weekDots(names, doneIdx, names)}
+                </div>
+            </div>
+            <div class="ac-week-note">
+                ${Components.icon('leaf', 16)}
+                <span>Ты на верном пути! ${doneIdx.length} ${doneIdx.length === 1 ? 'день' : 'дня'} из 7 — уже отлично!</span>
+                <span class="gf-chev">›</span>
+            </div>
+        </section>`;
+    }
+
+    // --- Hero тренировки дня ---
     function pickDaily(items) {
-        // Та же рекомендация, что в «Сегодня» (детерминированный выбор сервера)
         if (App.state.today && App.state.today.workout) {
             return App.state.today.workout;
         }
@@ -56,193 +134,177 @@ App.screens.activity = (() => {
         return pickByDate(suitable.length ? suitable : items, todayISO());
     }
 
-    function renderTodayCard(c, daily) {
-        const cycle = App.state.cycle;
-        const dayLabel = cycle && cycle.cycle_day ? ` · День ${cycle.cycle_day}` : '';
+    function renderTodayCard(items) {
+        const daily = pickDaily(items);
         if (!daily) return '';
         const labels = App.state.content.common.intensity_labels;
-        const catLabels = App.state.content.common.category_labels;
-        const stateLabel = daily.completed ? c.state_completed : c.state_start;
+        const noEquipment = !daily.equipment || daily.equipment === 'без оборудования';
         return `
-        <section class="hero-workout">
-            ${daily.completed ? `<div class="hero-done-badge">✓ ${c.completed}</div>` : ''}
-            <div class="hero-workout-text">
-                <span class="hero-tag">${c.today_card}${dayLabel}</span>
-                <h2 class="hero-workout-title">${esc(daily.title)}</h2>
-                <p class="hero-workout-meta">${daily.duration_min} мин · ${labels[daily.intensity]} · ${catLabels[daily.category]}</p>
-                <p class="hero-workout-meta">${esc(daily.equipment)}</p>
-            </div>
-            <button class="btn btn-light" id="ac-start">${stateLabel === c.state_completed ? c.completed : c.player_start}</button>
-        </section>`;
-    }
-
-    function renderAltCard(c) {
-        return `
-        <button class="card card-warm" id="ac-alt"
-            style="cursor:pointer;text-align:left;font-family:var(--font-body);color:var(--text-primary);">
-            <div class="flex-between">
-                <div>
-                    <p class="habit-title">${c.alt_title}</p>
-                    <p class="text-muted">${c.alt_text}</p>
+        <section class="td-hero ac-hero" id="ac-hero" role="button" tabindex="0"
+                 aria-label="Начать тренировку">
+            <img class="td-hero-img" src="img/hero-workout.jpg" alt="">
+            <div class="td-hero-inner">
+                <span class="td-hero-badge">Сегодня</span>
+                <h2 class="td-hero-title">Твоя активность на сегодня</h2>
+                <p class="td-hero-meta">${esc(daily.title)} · ${daily.duration_min} минут · ${labels[daily.intensity]} интенсивность</p>
+                <div class="td-hero-notes">
+                    <span class="td-hero-note">${Components.icon('dumbbell', 16)} ${noEquipment ? 'Без оборудования' : esc(daily.equipment)}</span>
+                    <span class="td-hero-note">${Components.icon('clock', 16)} ${daily.duration_min} мин</span>
                 </div>
-                <span style="color:var(--text-muted);font-size:18px;">→</span>
+                ${Components.pillButton('Начать тренировку ›', 'hero')}
+                <span class="ac-hero-more">Подробнее ›</span>
             </div>
-        </button>`;
-    }
-
-    function renderFilters(c) {
-        const row = (items, group) => items.map((f) => `
-            <button class="filter-chip${filters[group] === f.id ? ' active' : ''}"
-                data-group="${group}" data-id="${f.id}">${f.label}</button>`).join('');
-        return `
-        <section class="stack" style="gap:8px;">
-            <div class="filter-row">${row(c.filters_category, 'category')}</div>
-            <div class="filter-row">${row(c.filters_duration, 'duration')}</div>
-            <div class="filter-row">${row(c.filters_intensity, 'intensity')}</div>
         </section>`;
     }
 
-    function renderCatalog(c, items) {
+    // --- Каталог: заголовок + чипы категорий ---
+    const CHIP_ORDER = ['all', 'yoga', 'cardio', 'stretching', 'strength', 'recovery'];
+
+    function renderCatalogHead() {
+        const c = App.state.content.activity_screen;
+        const available = c.filters_category || [];
+        const ordered = CHIP_ORDER
+            .map((id) => available.find((f) => f.id === id))
+            .filter(Boolean);
+        return `
+        <section>
+            <div class="gf-section-header">
+                <h2 class="gf-section-title">Все тренировки</h2>
+                <button class="gf-section-link" id="ac-show-all">Смотреть все <span class="gf-chev">›</span></button>
+            </div>
+            <div class="td-chips" id="ac-chips"></div>
+        </section>`;
+    }
+
+    // Три карточки каталога — с разнообразием категорий (как в референсе):
+    // берём первые йогу, растяжку и кардио из списка, недостающее добираем любым.
+    function pickThree(items) {
+        const byCat = {};
+        items.forEach((w) => { (byCat[w.category] = byCat[w.category] || []).push(w); });
+        const picked = [];
+        ['yoga', 'stretching', 'cardio'].forEach((cat) => {
+            const w = (byCat[cat] || []).find((x) => !picked.includes(x));
+            if (w) picked.push(w);
+        });
+        items.forEach((w) => { if (picked.length < 3 && !picked.includes(w)) picked.push(w); });
+        return picked.slice(0, 3);
+    }
+
+    function renderCatalog(items) {
+        const c = App.state.content.activity_screen;
         const labels = App.state.content.common.intensity_labels;
-        const catLabels = App.state.content.common.category_labels;
+        const intensityWord = { easy: 'лёгкая', medium: 'средняя', high: 'высокая' };
         const filtered = items.filter((w) => {
             if (filters.category !== 'all' && w.category !== filters.category) return false;
-            if (filters.intensity && w.intensity !== filters.intensity) return false;
-            if (filters.duration) {
-                const limits = { 10: 15, 20: 25, 30: 35 };
-                if (filters.duration in limits && w.duration_min > limits[filters.duration]) return false;
-                if (filters.duration === '40' && w.duration_min <= 35) return false;
-            }
             return true;
         });
-        const cards = filtered.map((w) => `
-            <div class="card workout-card">
-                <div class="workout-thumb t-${w.category}">
-                    ${categoryIcon(w.category)}
-                </div>
-                <div class="workout-card-info">
-                    <p class="workout-card-title">${esc(w.title)}</p>
-                    <p class="workout-card-meta">${w.duration_min} мин · ${labels[w.intensity]}</p>
-                    ${w.equipment === c.no_equipment || w.equipment === 'без оборудования'
-                        ? `<span class="workout-tag">${c.no_equipment}</span>` : ''}
-                </div>
-                ${w.completed
-                    ? `<span class="done-badge">✓ ${c.completed}</span>`
-                    : `<button class="btn btn-small workout-open" data-id="${w.id}">${c.start}</button>`}
+        const list = showAll ? filtered.slice(0, 8) : pickThree(filtered);
+        const cards = list.map((w) => `
+            <div class="td-phase ac-workout" data-wid="${w.id}" role="button" tabindex="0">
+                <img class="td-phase-img" src="${CATEGORY_IMG[w.category] || CATEGORY_IMG.recovery}" alt="" loading="lazy">
+                <span class="td-phase-body">
+                    <span class="td-phase-name">${esc(w.title)}</span>
+                    <span class="td-phase-meta">${w.duration_min} мин · ${intensityWord[w.intensity] || labels[w.intensity]} интенсивность</span>
+                    ${(!w.equipment || w.equipment === 'без оборудования')
+                        ? `<span class="td-phase-note">${Components.icon('dumbbell', 15)} Без оборудования</span>`
+                        : ''}
+                </span>
+                <span class="td-phase-side">
+                    ${w.completed
+                        ? '<span class="ac-done">✓ Выполнено</span>'
+                        : Components.pillButton('Начать', 'primary', true)}
+                    <span class="gf-chev">›</span>
+                </span>
             </div>`).join('');
         return `
-        <section class="stack">
-            <h3>${c.catalog_title}</h3>
+        <div class="td-phase-list ac-list">
             ${cards || emptyState(c.empty)}
-        </section>`;
+        </div>`;
     }
 
-    function categoryIcon(cat) {
-        const icons = {
-            strength: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M6.5 6.5 17.5 17.5M4 9l3-3M17 20l3-3M2 12h4M18 12h4M4 15l3 3M17 7l3 3"/></svg>',
-            cardio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg>',
-            yoga: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
-            stretching: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M4 12h16M4 12l4-4M4 12l4 4M20 12l-4-4M20 12l-4 4"/></svg>',
-            recovery: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>',
-        };
-        return icons[cat] || icons.recovery;
-    }
-
-    function renderWeek(c) {
+    // --- Нижний блок: активность на сегодня + за месяц ---
+    function renderBottomBlock() {
         if (!progressCache) return '';
-        // Текущая неделя (пн–вс): отметки из дневного покрытия месяца
-        const today = dateFromISO(todayISO());
-        const monday = new Date(today);
-        monday.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
-        const names = App.state.content.common.day_names;
-        let doneCount = 0;
-        const dots = names.map((n, i) => {
-            const d = new Date(monday);
-            d.setDate(monday.getDate() + i);
-            const iso = CycleMath.toISODate(d);
-            const day = progressCache.days[iso];
-            const done = Boolean(day && day.workouts > 0);
-            if (done && i <= (today.getDay() === 0 ? 6 : today.getDay() - 1)) doneCount += 1;
-            return `
-                <div class="week-day${done ? ' done' : ''}">
-                    <div class="week-day-dot">${done ? '✓' : '—'}</div>
-                    <span>${n}</span>
-                </div>`;
-        }).join('');
-
-        // «Регулярно уже N недель» — по полным неделям текущего месяца
-        const activeWeeks = (progressCache.weeks || []).filter((w) => w.pct > 0).length;
-        const streakText = activeWeeks > 0
-            ? `${c.regular_prefix} ${activeWeeks} ${c.weeks_word} 💛`
-            : `Небольшие шаги — и первая неделя уже близко 💛`;
-
-        return `
-        <section class="card">
-            <h3>${c.my_week_title}</h3>
-            <div class="flex-between">
-                <p class="subtitle">${c.week_progress} <b>${doneCount}/4</b> ${c.week_goal}</p>
-            </div>
-            <div class="week-dots">${dots}</div>
-            <p class="text-muted">${streakText}</p>
-        </section>`;
-    }
-
-    function renderMonth(c) {
-        if (!progressCache) return '';
+        const c = App.state.content.activity_screen;
         const p = progressCache;
+        const { names, doneIdx } = weekStats();
+        const pastWeeks = (p.weeks || []).slice(0, -1).filter((w) => w.pct > 0).length;
         return `
-        <button class="card card-warm" id="ac-stats" style="cursor:pointer;text-align:left;font-family:var(--font-body);color:var(--text-primary);">
-            <div class="card-title-row">
-                <h3>${c.month_title}</h3>
-                <span class="text-muted">${c.all_stats} →</span>
+        <section class="td-activity" id="ac-today-block" role="button" tabindex="0" aria-label="Активность на сегодня">
+            <div class="td-activity-head">
+                <span class="td-checkin-icon ac-shoe">${Components.icon('footprints', 22)}</span>
+                <span class="td-activity-titles">
+                    <span class="td-activity-title">Активность на сегодня</span>
+                </span>
             </div>
-            <div class="stats-grid">
-                <div class="stat-cell">
-                    <span class="stat-cell-value">${p.workouts_completed}</span>
-                    <span class="stat-cell-label">${c.workouts_word}</span>
+            <div class="td-activity-body">
+                <div class="td-activity-count">
+                    <span class="td-count">${doneIdx.length} / 7</span>
+                    <span class="td-count-cap">дней выполнено</span>
                 </div>
-                <div class="stat-cell">
-                    <span class="stat-cell-value">${p.active_minutes}</span>
-                    <span class="stat-cell-label">${c.minutes_word}</span>
-                </div>
-                <div class="stat-cell">
-                    <span class="stat-cell-value">${p.regularity_pct}%</span>
-                    <span class="stat-cell-label">${c.plan_completion}</span>
-                </div>
+                <div class="td-activity-week">${Components.weekDots(names, doneIdx, names)}</div>
             </div>
-        </button>`;
+            <p class="td-activity-note">${Components.icon('leaf', 16)}
+                <span>Ты занимаешься регулярно уже ${pastWeeks} ${pastWeeks === 1 ? 'неделю' : pastWeeks < 5 ? 'недели' : 'недель'}</span>
+            </p>
+            <div class="ac-month">
+                <span class="td-month-cap">За месяц</span>
+                <span class="ac-month-stats">
+                    <b>${p.workouts_completed}</b> ${c.workouts_word} ·
+                    <b>${p.active_minutes}</b> ${c.minutes_word} ·
+                    <b>${p.regularity_pct}%</b> ${c.plan_completion}
+                </span>
+                <span class="gf-chev">›</span>
+            </div>
+        </section>`;
     }
 
-    function bindAll(c, items) {
-        const start = el('ac-start');
-        if (start) start.addEventListener('click', () => {
+    function bindAll(items) {
+        const profile = el('ac-profile');
+        if (profile) profile.addEventListener('click', () => showMain('profile'));
+
+        const week = el('ac-week');
+        if (week) week.addEventListener('click', () => App.screens.profile.openStats());
+
+        const hero = el('ac-hero');
+        if (hero) hero.addEventListener('click', () => {
             const daily = pickDaily(items);
             if (daily) openWorkout(daily);
         });
 
-        el('ac-alt').addEventListener('click', () => {
-            filters.category = 'all';
-            filters.intensity = 'easy';
-            render();
-            window.scrollTo({ top: el('activity-content').offsetTop, behavior: 'smooth' });
-        });
-
-        document.querySelectorAll('#activity-content .filter-chip').forEach((chip) => {
-            chip.addEventListener('click', () => {
-                filters[chip.dataset.group] = chip.dataset.id;
-                render();
+        // Чипы категорий: порядок как в референсе, подписи — из контента
+        const c = App.state.content.activity_screen;
+        const available = c.filters_category || [];
+        const catFilters = CHIP_ORDER
+            .map((id) => available.find((f) => f.id === id))
+            .filter(Boolean);
+        const chipsWrap = el('ac-chips');
+        if (chipsWrap) {
+            const activeIdx = Math.max(0, catFilters.findIndex((f) => f.id === filters.category));
+            chipsWrap.innerHTML = Components.chips(catFilters.map((f) => f.label), activeIdx);
+            chipsWrap.querySelectorAll('.gf-chip').forEach((chip) => {
+                chip.addEventListener('click', () => {
+                    filters.category = catFilters[Number(chip.dataset.chipIndex)].id;
+                    render();
+                });
             });
+        }
+
+        const showAllBtn = el('ac-show-all');
+        if (showAllBtn) showAllBtn.addEventListener('click', () => {
+            showAll = !showAll;
+            render();
         });
 
-        document.querySelectorAll('#activity-content .workout-open').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const w = items.find((x) => x.id === Number(btn.dataset.id));
+        document.querySelectorAll('#activity-content .ac-workout').forEach((card) => {
+            card.addEventListener('click', () => {
+                const w = items.find((x) => x.id === Number(card.dataset.wid));
                 if (w) openWorkout(w);
             });
         });
 
-        const stats = el('ac-stats');
-        if (stats) stats.addEventListener('click', () => App.screens.profile.openStats());
+        const todayBlock = el('ac-today-block');
+        if (todayBlock) todayBlock.addEventListener('click', () => App.screens.profile.openStats());
     }
 
     // ============ Плеер тренировки ============

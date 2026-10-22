@@ -15,61 +15,32 @@
 
     <!-- ===== Сегодня (главный) ===== -->
     <main id="screen-today" class="screen">
-        <header class="page-header flex-between">
-            <div>
-                <h1 id="today-greeting">Привет!</h1>
-                <p id="today-date" class="subtitle"></p>
-            </div>
-            <button class="profile-avatar" id="today-avatar" aria-label="Профиль" style="width:44px;height:44px;font-size:18px;border:1px solid var(--border);cursor:pointer;"></button>
-        </header>
-        <div id="today-content" class="section-gap"><!-- рендерит screens/today.js --></div>
+        <div id="today-content" class="section-gap"><!-- рендерит screens/today.js (шапка — тоже там) --></div>
     </main>
 
     <!-- ===== Цикл ===== -->
     <main id="screen-cycle" class="screen hidden">
-        <header class="page-header">
-            <h1 id="cycle-title">Твой цикл</h1>
-            <p id="cycle-status" class="subtitle">Загружаю данные цикла…</p>
-        </header>
-        <div id="cycle-content" class="section-gap"><!-- рендерит screens/cycle.js --></div>
+        <div id="cycle-content" class="section-gap"><!-- рендерит screens/cycle.js (шапка — тоже там) --></div>
     </main>
 
     <!-- ===== Активность ===== -->
     <main id="screen-activity" class="screen hidden">
-        <header class="page-header">
-            <h1>Активность</h1>
-            <p id="activity-subtitle" class="subtitle"></p>
-        </header>
-        <div id="activity-content" class="section-gap"><!-- рендерит screens/activity.js --></div>
+        <div id="activity-content" class="section-gap"><!-- рендерит screens/activity.js (шапка — тоже там) --></div>
     </main>
 
     <!-- ===== Питание ===== -->
     <main id="screen-nutrition" class="screen hidden">
-        <header class="page-header flex-between">
-            <div>
-                <h1>Питание</h1>
-                <p id="nutrition-subtitle" class="subtitle"></p>
-            </div>
-            <button id="nutrition-info" class="back-button" style="align-self:flex-start" aria-label="Дисклеймер">ⓘ</button>
-        </header>
-        <div id="nutrition-content" class="section-gap"><!-- рендерит screens/nutrition.js --></div>
+        <div id="nutrition-content" class="section-gap"><!-- рендерит screens/nutrition.js (шапка — тоже там) --></div>
     </main>
 
     <!-- ===== Привычки ===== -->
     <main id="screen-habits" class="screen hidden">
-        <header class="page-header">
-            <h1>Привычки</h1>
-            <p class="subtitle" id="habits-subtitle"></p>
-        </header>
-        <div id="habits-content" class="section-gap"><!-- рендерит screens/habits.js --></div>
+        <div id="habits-content" class="section-gap"><!-- рендерит screens/habits.js (шапка — тоже там) --></div>
     </main>
 
     <!-- ===== Профиль ===== -->
     <main id="screen-profile" class="screen hidden">
-        <header class="page-header">
-            <h1 id="profile-title">Профиль</h1>
-        </header>
-        <div id="profile-content" class="section-gap"><!-- рендерит screens/profile.js --></div>
+        <div id="profile-content" class="section-gap"><!-- рендерит screens/profile.js (шапка — тоже там) --></div>
     </main>
 
     <!-- ===== Подэкран: страница фазы ===== -->
@@ -189,30 +160,32 @@
     <!-- ===== Модальные окна ===== -->
     <div id="modal-root"></div>
 
-    <!-- Нижняя навигация: 5 разделов, fixed + safe-area -->
+    <!-- Нижняя навигация: 6 разделов, fixed + safe-area.
+         Подэлементы с class="nf" при активной вкладке заливаются (--olive)
+         через CSS: .nav-item.active svg .nf { fill: currentColor } -->
     <nav class="bottom-nav" id="bottom-nav">
         <button class="nav-item active" data-nav="today">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="nf" d="m3 10.2 9-7.2 9 7.2V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9.2 22v-7.6h5.6V22"/></svg>
             <span>Сегодня</span>
         </button>
         <button class="nav-item" data-nav="cycle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none" opacity="0.25"/><circle cx="12" cy="12" r="2.5"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.8v3.7M16 2.8v3.7"/><rect class="nf" x="3" y="4.5" width="18" height="17" rx="2.6"/></svg>
             <span>Цикл</span>
         </button>
         <button class="nav-item" data-nav="activity">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.28"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="nf" d="M2.6 9.9v4.2M5.9 7.4v9.2M18.1 7.4v9.2M21.4 9.9v4.2"/><path d="M5.9 12h12.2"/></svg>
             <span>Активность</span>
         </button>
         <button class="nav-item" data-nav="nutrition">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="nf" d="M6.2 2.5v19"/><path class="nf" d="M3.5 2.5v5.2a2.7 2.7 0 0 0 5.4 0V2.5"/><path class="nf" d="M17.8 2.5c-1.7 1.2-2.7 3.4-2.7 6v4.3h3.4v8.7"/></svg>
             <span>Питание</span>
         </button>
         <button class="nav-item" data-nav="habits">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-8"/><path d="M12 13c0-4 3-7 8-7 0 4-3 7-8 7Z"/><path d="M12 13c0-3.5-2.5-6-7-6 0 3.5 2.5 6 7 6Z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5v-8.3"/><path class="nf" d="M12 13.2c0-4.6 3.3-7.7 8.6-7.7 0 4.9-3.5 7.7-8.6 7.7Z"/><path class="nf" d="M12 13.2c0-4.1-2.9-7-7.6-7 0 4.3 3 7 7.6 7Z"/></svg>
             <span>Привычки</span>
         </button>
         <button class="nav-item" data-nav="profile">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle class="nf" cx="12" cy="7.6" r="4.1"/><path class="nf" d="M4.4 21.5v-1.6a4.9 4.9 0 0 1 4.9-4.9h5.4a4.9 4.9 0 0 1 4.9 4.9v1.6"/></svg>
             <span>Профиль</span>
         </button>
     </nav>
@@ -221,6 +194,7 @@
     <script src="app.js"></script>
     <script src="gamification.js"></script>
     <script src="onboarding.js"></script>
+    <script src="components.js"></script>
     <script src="screens/today.js"></script>
     <script src="screens/cycle.js"></script>
     <script src="screens/activity.js"></script>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <!-- Обязательный viewport для корректного отображения внутри Telegram -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Мини-апп</title>
+    <!-- Скрипт Telegram: открывает объект Telegram.WebApp для JS -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Главный экран: приветствие и меню разделов -->
+    <main id="screen-main" class="screen">
+        <h1 id="greeting">Привет!</h1>
+        <p class="subtitle">Каркас мини-аппа. Выберите раздел:</p>
+        <nav class="menu">
+            <!-- TODO: заменить заглушки на реальные разделы -->
+            <button class="menu-button" data-section="Раздел 1">Раздел 1</button>
+            <button class="menu-button" data-section="Раздел 2">Раздел 2</button>
+            <button class="menu-button" data-section="Раздел 3">Раздел 3</button>
+        </nav>
+    </main>
+
+    <!-- Экран-заглушка раздела -->
+    <main id="screen-section" class="screen hidden">
+        <h1 id="section-title">Здесь будет раздел</h1>
+        <p class="subtitle">Это заглушка — контент раздела появится позже.</p>
+        <button id="send-choice" class="menu-button accent">Отправить выбор боту</button>
+        <button id="back" class="menu-button secondary">Назад</button>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+openwakeword>=0.6.0
+onnxruntime>=1.16.0
+sounddevice>=0.4.6
+vosk>=0.3.45
+openai>=1.30.0
+edge-tts>=6.1.0
+python-dotenv>=1.0.0
+pycaw>=20240210
+comtypes>=1.2.0

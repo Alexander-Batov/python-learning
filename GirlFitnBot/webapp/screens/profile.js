@@ -1,12 +1,17 @@
-// Экран «Профиль»: профиль, мой цикл, цели, прогресс, регулярность,
-// подписка, настройки (уведомления/приватность/единицы), помощь, эксперты, юрблок.
+// Экран «Профиль» — вёрстка 1-в-1 с референсом (Экраны/Шестая вкладка.jpg).
+// Шапка «Личный кабинет» + карточка профиля со статистикой месяца,
+// меню настроек, выход. Подэкраны (статистика, настройки, FAQ, юрдоки) сохранены.
 
 App.screens.profile = (() => {
     let progressCache = null;
+    const RATING_MOCK = '4,8';
 
     async function onShow() {
-        el('profile-title').textContent = App.state.content.profile_screen.title;
-        setHTML('profile-content', emptyState(App.state.content.common.loading));
+        if (App.state.cycleError) {
+            setHTML('profile-content', errorState(
+                App.state.cycleError, 'App.screens.profile.onShow'));
+            return;
+        }
         try {
             await loadUser();
             const now = new Date();
@@ -28,202 +33,117 @@ App.screens.profile = (() => {
     function render() {
         setHTML('profile-content', [
             renderHead(),
-            renderCycle(),
-            renderGoals(),
-            renderProgress(),
-            renderRegularity(),
-            renderSubscription(),
+            renderProfileCard(),
+            renderStats(),
             renderMenu(),
-            renderExperts(),
-            renderLegal(),
+            renderLogout(),
         ].join(''));
         bindAll();
     }
 
+    // --- Шапка: «Личный кабинет ♡» + подпись + веточка + шестерёнка ---
     function renderHead() {
         const cc = c();
         return `
-        <section class="card profile-head">
-            <div class="profile-avatar">${avatarLetter()}</div>
-            <p class="profile-name">${esc(displayName())}</p>
-            <button class="link-btn" id="pf-edit-profile">${cc.edit_profile}</button>
-        </section>`;
+        <header class="td-header pf-head">
+            <div class="td-header-text">
+                <h1 class="gf-screen-title">${esc(cc.cabinet_title)} <span class="pf-heart">♡</span></h1>
+                <p class="td-sub pf-sub">${esc(cc.cabinet_sub).replace('\n', '<br>')}</p>
+            </div>
+            <div class="td-header-side pf-head-side">
+                <button type="button" class="pf-gear" id="pf-gear"
+                    aria-label="${esc(cc.settings_title)}">${Components.icon('gear', 22)}</button>
+                ${Components.branch(54, 84)}
+            </div>
+        </header>`;
     }
 
-    function renderCycle() {
+    // --- Карточка профиля: аватар + имя + цитата + компактный день цикла ---
+    function renderProfileCard() {
         const cc = c();
         const cycle = App.state.cycle;
-        const cs = App.state.user.cycle;
-        if (!cs || !cs.cycle_start) return '';
-        const dayText = cycle && cycle.cycle_day
-            ? `${cycle.cycle_day} ${cc.day_short}`
-            : '—';
+        const phase = cycle && cycle.phase
+            ? (App.state.content.phases[cycle.phase] || {}).name
+            : '';
+        const card = (cycle && cycle.cycle_day !== null && cycle.phase)
+            ? Components.cycleCard(cycle.cycle_day, phase, { compact: true })
+            : Components.cycleCard('—', 'Цикл не настроен', { compact: true });
         return `
-        <section class="card">
-            <div class="card-title-row">
-                <h3>🌸 ${cc.my_cycle}</h3>
-                <button class="link-btn" id="pf-edit-cycle">${cc.edit_cycle}</button>
+        <section class="card-like pf-card">
+            <div class="pf-avatar">
+                <img src="img/avatar.jpg" alt="Фото профиля">
+                <button type="button" class="pf-avatar-edit" id="pf-edit-profile"
+                    aria-label="${esc(cc.edit_profile)}">${Components.icon('pencil', 11)}</button>
             </div>
-            <div class="stats-grid">
-                <div class="stat-cell">
-                    <span class="stat-cell-value">${cs.cycle_length}</span>
-                    <span class="stat-cell-label">${cc.cycle_length_word}</span>
-                </div>
-                <div class="stat-cell">
-                    <span class="stat-cell-value" style="font-size:20px;padding-top:3px;">${formatDayMonth(cs.cycle_start)}</span>
-                    <span class="stat-cell-label">${cc.last_period_word}</span>
-                </div>
-                <div class="stat-cell">
-                    <span class="stat-cell-value">${dayText}</span>
-                    <span class="stat-cell-label">${cc.current_day_word}</span>
-                </div>
+            <div class="pf-id">
+                <p class="pf-name">${esc(displayName())} <span class="pf-heart">♡</span></p>
+                <p class="pf-quote">${esc(cc.quote)}</p>
+            </div>
+            <div class="pf-cycle-side">
+                ${Components.branch(18, 32)}
+                ${card}
             </div>
         </section>`;
     }
 
-    function renderGoals() {
+    // --- Статистика месяца: 4 колонки (клик — подробная статистика) ---
+    function renderStats() {
         const cc = c();
-        const goals = App.state.user.goals || [];
-        const labels = {};
-        App.state.content.goals.forEach((g) => { labels[g.id] = g.label; });
-        const chips = goals.length
-            ? goals.map((g) => `<span class="option-chip" style="cursor:default;">${labels[g] || esc(g)}</span>`).join('')
-            : `<p class="text-muted">${cc.no_goals}</p>`;
+        const p = progressCache || { workouts_completed: 0, active_minutes: 0, regularity_pct: 0 };
+        const cells = [
+            { icon: 'dumbbell', value: p.workouts_completed, label: cc.stat_workouts },
+            { icon: 'flame', value: p.active_minutes, label: cc.stat_minutes },
+            { icon: 'calendar', value: `${p.regularity_pct}%`, label: cc.stat_plan },
+            { icon: 'star', value: RATING_MOCK, label: cc.stat_rating },
+        ].map((s) => `
+            <div class="pf-stat">
+                <span class="pf-stat-icon">${Components.icon(s.icon, 20)}</span>
+                <span class="pf-stat-num">${esc(String(s.value))}</span>
+                <span class="pf-stat-cap">${esc(s.label)}</span>
+            </div>`).join('');
         return `
-        <section class="card">
-            <div class="card-title-row">
-                <h3>🎯 ${cc.my_goals}</h3>
-                <button class="link-btn" id="pf-edit-goals">${cc.edit_goals}</button>
-            </div>
-            <div class="goal-chip-row">${chips}</div>
+        <section class="card-like pf-stats" id="pf-stats" role="button" tabindex="0">
+            ${cells}
         </section>`;
     }
 
-    function renderProgress() {
-        const cc = c();
-        if (!progressCache) return '';
-        const p = progressCache;
-        return `
-        <button class="card" id="pf-progress" style="cursor:pointer;text-align:left;font-family:var(--font-body);color:var(--text-primary);">
-            <div class="card-title-row">
-                <h3>📊 ${cc.my_progress}</h3>
-                <span class="text-muted">${cc.detailed_stats} →</span>
-            </div>
-            <p class="text-muted">${cc.progress_month}</p>
-            <div class="stats-grid">
-                <div class="stat-cell">
-                    <span class="stat-cell-value">${p.workouts_completed}</span>
-                    <span class="stat-cell-label">${cc.stat_workouts}</span>
-                </div>
-                <div class="stat-cell">
-                    <span class="stat-cell-value">${p.active_minutes}</span>
-                    <span class="stat-cell-label">${cc.stat_minutes}</span>
-                </div>
-                <div class="stat-cell">
-                    <span class="stat-cell-value">${p.nutrition_days}</span>
-                    <span class="stat-cell-label">${cc.stat_nutrition}</span>
-                </div>
-                <div class="stat-cell">
-                    <span class="stat-cell-value">${p.habit_completions}</span>
-                    <span class="stat-cell-label">${cc.stat_habits}</span>
-                </div>
-            </div>
-        </button>`;
-    }
-
-    function renderRegularity() {
-        const cc = c();
-        if (!progressCache) return '';
-        const p = progressCache.regularity_pct;
-        const weeks = progressCache.weeks || [];
-        const trend = weeks.map((w) => w.pct);
-        return `
-        <section class="card card-warm">
-            <div class="flex-between">
-                <h3>${cc.regularity_card_title}</h3>
-                <span class="regularity-number">${p}%</span>
-            </div>
-            ${trend.length ? `
-            <div class="week-trend">
-                ${trend.map((v, i) => `
-                    <div class="trend-bar${i === trend.length - 1 ? ' current' : ''}"
-                        style="height:${Math.max(20, v)}%;">${v}</div>`).join('')}
-            </div>` : ''}
-            <p class="subtitle" style="font-style:italic;">${cc.regularity_cheer} 💛</p>
-        </section>`;
-    }
-
-    function renderSubscription() {
-        const cc = c();
-        const sub = App.state.user.subscription || { plan: 'free' };
-        if (sub.plan !== 'free') {
-            return `
-            <section class="card">
-                <h3>⭐ ${cc.subscription_title}</h3>
-                <p class="subtitle">Premium · до ${sub.until || '—'}</p>
-            </section>`;
-        }
-        return `
-        <section class="card">
-            <h3>⭐ ${cc.subscription_title}</h3>
-            <p class="subtitle">${cc.plan_free}</p>
-            <button class="btn btn-small" id="pf-premium">${cc.premium_cta} · ${cc.premium_price}</button>
-        </section>`;
-    }
+    // --- Меню: строки-иконки ---
+    const MENU_ACTIONS = {
+        'edit-profile': () => openEditProfile(),
+        'edit-cycle': () => App.screens.cycle.openEditSheet(),
+        'edit-goals': () => openEditGoals(),
+        'settings': () => openSettings(),
+        'reminders': () => showScreen('reminders'),
+        'faq': () => openFaq(),
+        'about': () => {
+            const cc = c();
+            infoSheet(cc.about_title || 'О приложении',
+                `${cc.menu.find((m) => m.action === 'about').title} · `
+                + `${cc.version_prefix || 'Версия'} ${cc.version}. `
+                + 'Приложение заботы о себе: цикл, активность, питание и привычки — без оценок и давления.');
+        },
+    };
 
     function renderMenu() {
         const cc = c();
-        return `
-        <section class="card">
-            <h3>Твой путь к себе</h3>
-            <div class="menu-list">
-                <button class="menu-row" id="pf-levels">
-                    <span>🌱 Уровни</span><span class="menu-chevron">›</span>
-                </button>
-                <button class="menu-row" id="pf-achievements">
-                    <span>🏵 Достижения</span><span class="menu-chevron">›</span>
-                </button>
-                <button class="menu-row" id="pf-rewards">
-                    <span>🎁 Мои призы</span><span class="menu-chevron">›</span>
-                </button>
-                <button class="menu-row" id="pf-reminders">
-                    <span>🔔 Напоминания</span><span class="menu-chevron">›</span>
-                </button>
-            </div>
-        </section>
-        <section class="card">
-            <div class="menu-list">
-                <button class="menu-row" id="pf-settings">
-                    <span>⚙️ ${cc.settings_title}</span><span class="menu-chevron">›</span>
-                </button>
-                <button class="menu-row" id="pf-help">
-                    <span>💬 ${cc.help_title}</span><span class="menu-chevron">›</span>
-                </button>
-            </div>
-        </section>`;
+        const rows = (cc.menu || []).map((m, i) => `
+            <button type="button" class="card-like pf-row" data-menu="${esc(m.action)}">
+                <span class="pf-row-icon">${Components.icon(m.icon || 'leaf', 18)}</span>
+                <span class="pf-row-txt">
+                    <span class="pf-row-title">${esc(m.title)}</span>
+                    <span class="pf-row-sub">${esc(m.sub.replace('{version}', cc.version || ''))}</span>
+                </span>
+                <span class="gf-chev pf-row-chev">›</span>
+            </button>`).join('');
+        return `<nav class="pf-menu">${rows}</nav>`;
     }
 
-    function renderExperts() {
+    function renderLogout() {
         const cc = c();
         return `
-        <section class="card card-warm">
-            <h3>🌿 ${cc.experts_title}</h3>
-            <p class="subtitle">${cc.experts_text}</p>
-        </section>`;
-    }
-
-    function renderLegal() {
-        const cc = c();
-        return `
-        <section class="card">
-            <h3>${cc.legal_title}</h3>
-            <div class="menu-list">
-                <button class="menu-row" data-legal="terms"><span>${cc.legal_terms}</span><span class="menu-chevron">›</span></button>
-                <button class="menu-row" data-legal="privacy"><span>${cc.legal_privacy}</span><span class="menu-chevron">›</span></button>
-                <button class="menu-row" data-legal="consent"><span>${cc.legal_consent}</span><span class="menu-chevron">›</span></button>
-            </div>
-            <p class="text-muted">${cc.version_prefix} 0.2.0-demo</p>
-        </section>`;
+        <button type="button" class="pf-logout" id="pf-logout">
+            ${Components.icon('logout', 17)} ${esc(cc.logout)}
+        </button>`;
     }
 
     // --- Подробная статистика (подэкран) ---
@@ -266,7 +186,7 @@ App.screens.profile = (() => {
             <section class="card">
                 <h3>${cc.regularity_card_title} · ${cc.progress_month}</h3>
                 <div class="mini-calendar">${cells.join('')}</div>
-                <p class="text-muted">${activeDays.length} ${cc.progress_month === 'за месяц' ? '' : ''}дней с отметками</p>
+                <p class="text-muted">${activeDays.length} дней с отметками</p>
             </section>
         `);
         showScreen('stats');
@@ -487,24 +407,21 @@ App.screens.profile = (() => {
     }
 
     function bindAll() {
+        el('pf-gear').addEventListener('click', openSettings);
         el('pf-edit-profile').addEventListener('click', openEditProfile);
-        const editCycle = el('pf-edit-cycle');
-        if (editCycle) editCycle.addEventListener('click', () => App.screens.cycle.openEditSheet());
-        el('pf-edit-goals').addEventListener('click', openEditGoals);
-        const progress = el('pf-progress');
-        if (progress) progress.addEventListener('click', openStats);
-        const premium = el('pf-premium');
-        if (premium) premium.addEventListener('click', () => {
+        el('pf-stats').addEventListener('click', openStats);
+        el('pf-logout').addEventListener('click', () => {
             const cc = c();
-            infoSheet(`${cc.premium_cta} · ${cc.premium_price}`, cc.premium_text);
+            infoSheet(cc.logout,
+                'Выход появится в одном из ближайших обновлений. Пока приложение '
+                + 'живёт внутри этого чата и не требует отдельного входа.');
         });
-        el('pf-levels').addEventListener('click', () => showScreen('levels'));
-        el('pf-achievements').addEventListener('click', () => showScreen('achievements'));
-        el('pf-rewards').addEventListener('click', () => showScreen('rewards'));
-        el('pf-reminders').addEventListener('click', () => showScreen('reminders'));
-        el('pf-settings').addEventListener('click', openSettings);
-        el('pf-help').addEventListener('click', openFaq);
-        bindLegalRows('profile-content');
+        document.querySelectorAll('#profile-content .pf-row').forEach((row) => {
+            row.addEventListener('click', () => {
+                const action = MENU_ACTIONS[row.dataset.menu];
+                if (action) action();
+            });
+        });
     }
 
     return { onShow, openStats, openEditGoals };

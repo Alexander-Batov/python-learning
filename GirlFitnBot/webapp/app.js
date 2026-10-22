@@ -381,8 +381,6 @@ async function enterApp() {
     } catch (err) {
         console.error('[api] /api/today:', err);
     }
-    el('today-avatar').textContent = avatarLetter();
-    el('today-avatar').addEventListener('click', () => showMain('profile'));
     setNavVisible(true);
     showScreen('today');
     // DEV-ONLY: глубокая ссылка ?screen=<имя> для локальных скриншотов/проверок
