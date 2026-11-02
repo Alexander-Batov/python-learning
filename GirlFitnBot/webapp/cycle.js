@@ -8,7 +8,9 @@
 // - Фолликулярная: дни (P+1) - (L-14), включая день овуляции (~L-14)
 // - Овуляторная: дни (L-13) - (L-12), ~2 дня
 // - Лютеиновая: дни (L-11) - L
-// Пример L=28, P=5: 1-5 · 6-14 · 15-16 · 17-28
+//   · делится на два подпериода (см. getSubperiod):
+//     стабильная (L-11 .. L-7) и предменструальная неделя (последние 7 дней, L-6 .. L)
+// Пример L=28, P=5: 1-5 · 6-14 · 15-16 · 17-28 (17-21 стабильная, 22-28 предменструальная)
 
 const CycleMath = (() => {
     const PHASE = {
@@ -17,6 +19,12 @@ const CycleMath = (() => {
         OVULATORY: 'ovulatory',
         LUTEAL: 'luteal',
         OVERDUE: 'overdue',
+    };
+
+    // Подпериоды внутри лютеиновой фазы
+    const SUBPERIOD = {
+        LUTEAL_STABLE: 'luteal_stable',
+        PREMENSTRUAL: 'premenstrual',
     };
 
     // Длительность месячных по умолчанию (если пользователь её не указывал)
@@ -83,6 +91,18 @@ const CycleMath = (() => {
         };
     }
 
+    // Подпериод лютеиновой фазы по номеру дня:
+    // предменструальная неделя — последние 7 дней цикла (L-6 .. L),
+    // стабильная — остаток лютеиновой (L-11 .. L-7).
+    // Вне лютеиновой фазы и для null возвращает null.
+    function getSubperiod(cycleDay, cycleLength, periodLength) {
+        const phase = getPhase(cycleDay, cycleLength, periodLength);
+        if (phase !== PHASE.LUTEAL) return null;
+        return cycleDay >= cycleLength - 6
+            ? SUBPERIOD.PREMENSTRUAL
+            : SUBPERIOD.LUTEAL_STABLE;
+    }
+
     // Фаза для конкретной даты (для раскраски календаря и карточки дня)
     function getPhaseForDate(onDate, cycleStart, cycleLength, periodLength) {
         return getPhase(
@@ -140,12 +160,14 @@ const CycleMath = (() => {
 
     return {
         PHASE,
+        SUBPERIOD,
         DEFAULT_PERIOD_LENGTH,
         toDate,
         toISODate,
         getCycleDay,
         getCurrentDay,
         getPhase,
+        getSubperiod,
         getPhaseForDate,
         getNextPeriodDate,
         buildCalendarMonth,

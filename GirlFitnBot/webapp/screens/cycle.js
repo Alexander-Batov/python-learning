@@ -160,8 +160,14 @@ App.screens.cycle = (() => {
     function renderRecommendations() {
         const cycle = App.state.cycle;
         const phases = App.state.content.phases || {};
-        const focus = (App.state.content.nutrition_focus || {})[cycle.phase] || '';
-        const phaseName = (phases[cycle.phase] || {}).name || '';
+        const subperiods = App.state.content.subperiods || {};
+        const sub = subperiods[cycle.subperiod] || null;
+        // Для предменструальной недели — свой фокус питания
+        const focusKey = cycle.subperiod === CycleMath.SUBPERIOD.PREMENSTRUAL
+            ? 'premenstrual'
+            : cycle.phase;
+        const focus = (App.state.content.nutrition_focus || {})[focusKey] || '';
+        const phaseName = sub ? sub.name : ((phases[cycle.phase] || {}).name || '');
 
         const w = dailyWorkout;
         const intensityWord = { easy: 'лёгкая', medium: 'умеренная', high: 'высокая' };
@@ -204,14 +210,27 @@ App.screens.cycle = (() => {
             action: 'habits',
         }));
 
+        // Контент предменструальной недели: «Режим экономии энергии» и «Работа со стрессом»
+        const topicsHtml = (sub && sub.topics)
+            ? `<div class="cy-topics">
+                ${sub.topics.map((t) => `
+                    <div class="card card-warm cy-topic">
+                        <h3>${esc(t.title)}</h3>
+                        <p class="subtitle">${esc(t.text)}</p>
+                    </div>`).join('')}
+            </div>`
+            : '';
+
         return `
         <section>
             <div class="cy-rec-head">
                 <h2 class="gf-section-title">Рекомендации на сегодня</h2>
                 <span class="cy-phase-pill">${esc(phaseName)}</span>
             </div>
+            ${sub ? `<p class="cy-rec-sub">${esc(sub.status)}</p>` : ''}
             <p class="cy-rec-sub">Поддержи энергию, сон и спокойный ритм</p>
             <div class="cy-rec-list">${cards.join('')}</div>
+            ${topicsHtml}
         </section>`;
     }
 
@@ -307,6 +326,25 @@ App.screens.cycle = (() => {
         if (overdueEdit) overdueEdit.addEventListener('click', openEditSheet);
     }
 
+    // Блок «Два периода фазы» для страницы лютеиновой фазы
+    function lutealSubperiodsSection() {
+        const subs = App.state.content.subperiods || {};
+        const stable = subs.luteal_stable;
+        const pre = subs.premenstrual;
+        if (!stable || !pre) return '';
+        const item = (s) => `
+            <div style="margin-top:10px;">
+                <p style="font-weight:600;">${esc(s.name)}</p>
+                <p class="subtitle">${esc(s.status)}</p>
+                <p class="subtitle">${esc(s.short)}</p>
+            </div>`;
+        const topics = (pre.topics || []).map((t) =>
+            `<li style="font-size:13.5px;"><b>${esc(t.title)}</b> — ${esc(t.text)}</li>`).join('');
+        return `<div class="card"><h3>Два периода фазы</h3>${item(stable)}${item(pre)}
+            ${topics ? `<ul style="padding-left:18px;display:flex;flex-direction:column;gap:6px;margin-top:10px;">${topics}</ul>` : ''}
+        </div>`;
+    }
+
     // --- Страница фазы (подэкран, сохранён) ---
     async function openPhase(key) {
         const phase = App.state.content.phases[key];
@@ -338,6 +376,7 @@ App.screens.cycle = (() => {
 
         setHTML('phase-sections',
             section('О фазе', `<p class="subtitle">${phase.description}</p>`)
+            + (key === 'luteal' ? lutealSubperiodsSection() : '')
             + section('Движение', `<p class="subtitle">${phase.movement}</p>${workoutsHtml}`)
             + section('Питание', `<p class="subtitle">${phase.nutrition}</p>`)
             + `<div class="card"><h3>Рекомендации</h3>

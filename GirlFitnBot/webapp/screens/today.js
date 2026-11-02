@@ -104,17 +104,21 @@ App.screens.today = (() => {
     function renderHero() {
         const cycle = App.state.cycle;
         const p = phaseInfo(cycle.phase);
+        // Лютеиновая фаза делится на два подпериода — статус берём из него
+        const sub = (App.state.content.subperiods || {})[cycle.subperiod] || null;
+        const status = sub ? sub.status : (p.status || '');
+        const statusNote = sub ? sub.status_note : (p.status_note || '');
         return `
         <section class="td-hero" id="t-hero" role="button" tabindex="0"
                  aria-label="${esc(p.name || '')}">
             <img class="td-hero-img" src="${IMAGES['hero-svetlana']}" alt="">
             <div class="td-hero-inner">
                 <span class="td-hero-badge">Сегодня</span>
-                <h2 class="td-hero-title">${esc(p.name || '')}</h2>
+                <h2 class="td-hero-title">${esc(sub ? sub.name : (p.name || ''))}</h2>
                 <p class="td-hero-meta">С ${p.from} по ${p.to} день цикла · Вы в середине фазы</p>
                 <div class="td-hero-notes">
-                    <span class="td-hero-note">${Components.icon('leaf', 16)} Энергия стабильна</span>
-                    <span class="td-hero-note">${Components.icon('clock', 16)} Поддержка энергии</span>
+                    <span class="td-hero-note">${Components.icon('zap', 16)} ${esc(status)}</span>
+                    <span class="td-hero-note">${Components.icon('clock', 16)} ${esc(statusNote)}</span>
                 </div>
                 ${Components.pillButton('Подробнее ›', 'hero')}
             </div>

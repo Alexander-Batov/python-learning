@@ -111,6 +111,9 @@ function recalcLocalCycle() {
         phase: (day === null || overdue)
             ? null
             : CycleMath.getPhase(day, cycle.cycle_length, pl),
+        subperiod: (day === null || overdue)
+            ? null
+            : CycleMath.getSubperiod(day, cycle.cycle_length, pl),
     };
 }
 
