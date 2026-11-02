@@ -3615,19 +3615,19 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     cursor: pointer;
 }
 
-/* --- Карточка профиля --- */
+/* --- Карточка профиля: доминирует в верхней части экрана --- */
 .pf-card {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 16px 14px;
+    gap: 16px;
+    padding: 20px 16px;
     border-radius: 18px;
 }
 
 .pf-avatar {
     position: relative;
-    width: 80px;
-    height: 80px;
+    width: 116px;
+    height: 116px;
     flex-shrink: 0;
 }
 
@@ -3648,7 +3648,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     background: var(--surface-tint-green);
     color: var(--olive);
     font-family: var(--font-head);
-    font-size: 34px;
+    font-size: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3658,8 +3658,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     position: absolute;
     right: -2px;
     bottom: -2px;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--olive);
     color: var(--on-hero);
@@ -3677,16 +3677,16 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 
 .pf-name {
     font-family: var(--font-head);
-    font-size: 20px;
+    font-size: 28px;
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1.15;
     color: var(--text-primary);
 }
 
 .pf-quote {
-    margin-top: 4px;
-    font-size: 12px;
-    line-height: 1.4;
+    margin-top: 6px;
+    font-size: 14px;
+    line-height: 1.45;
     color: var(--text-secondary);
 }
 
