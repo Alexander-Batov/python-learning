@@ -1,8 +1,18 @@
 /* ============================================================
    Дизайн-система GirlFit — токены из Структура_данных.md (раздел 6)
-   Premium wellness + editorial: тёплый фон, терракота и олива,
-   Cormorant Garamond для заголовков, Manrope для текста.
+   Premium wellness + editorial: тёплый фон, терракота и олива.
+   Шрифты: сейчас везде Geologica; предыдущая пара (Cormorant Garamond
+   для заголовков + Manrope для текста) сохранена — откат одной строкой
+   в :root (--font-head/--font-body, см. комментарий там).
    ============================================================ */
+
+@font-face {
+    font-family: 'Geologica';
+    src: url('fonts/Geologica.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
 
 @font-face {
     font-family: 'Cormorant Garamond';
@@ -75,8 +85,15 @@
     --on-accent: #FFF9F1;
     --danger: #A4442E;
 
+    /* Шрифты. Текущие — Geologica для заголовков и текста.
+       ОТКАТ к прежней паре: закомментировать две строки Geologica
+       и раскомментировать две строки ниже. */
+    --font-head: 'Geologica', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-body: 'Geologica', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* Предыдущие шрифты (откат):
     --font-head: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
     --font-body: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    */
 
     --radius-lg: 20px;
     --radius: 16px;
