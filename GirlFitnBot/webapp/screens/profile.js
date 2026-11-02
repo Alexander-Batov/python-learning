@@ -114,6 +114,7 @@ App.screens.profile = (() => {
         'edit-profile': () => openEditProfile(),
         'edit-cycle': () => App.screens.cycle.openEditSheet(),
         'edit-goals': () => openEditGoals(),
+        'plates': () => openPlates(),
         'settings': () => openSettings(),
         'reminders': () => showScreen('reminders'),
         'faq': () => openFaq(),
@@ -146,6 +147,91 @@ App.screens.profile = (() => {
         <button type="button" class="pf-logout" id="pf-logout">
             ${Components.icon('logout', 17)} ${esc(cc.logout)}
         </button>`;
+    }
+
+    // --- Сохранённые тарелки: список → просмотр → повтор/удаление ---
+    async function openPlates() {
+        const nc = App.state.content.nutrition_screen;
+        setHTML('plates-content', emptyState(App.state.content.common.loading));
+        showScreen('plates');
+        let items;
+        try {
+            const data = await apiGet('/api/plates');
+            items = data.items || [];
+        } catch (err) {
+            setHTML('plates-content', errorState(
+                `Не удалось загрузить: ${apiErrorText(err)}`, 'App.screens.profile.openPlates'));
+            return;
+        }
+        if (!items.length) {
+            setHTML('plates-content', `<p class="empty-hint">${esc(nc.plates_empty)}</p>`);
+            return;
+        }
+        const rows = items.map((p) => {
+            const t = (p.payload && p.payload.totals) || {};
+            const pct = t.pct || {};
+            const meta = t.kcal
+                ? `${t.kcal} ккал · Б ${pct.p || 0}% · Ж ${pct.f || 0}% · У ${pct.c || 0}%`
+                : '';
+            return `
+            <button type="button" class="card-like pf-row" data-plate="${p.id}">
+                <span class="pf-row-icon">${Components.icon('fork', 18)}</span>
+                <span class="pf-row-txt">
+                    <span class="pf-row-title">${esc(p.title)}</span>
+                    <span class="pf-row-sub">${esc(meta)}</span>
+                </span>
+                <span class="gf-chev pf-row-chev">›</span>
+            </button>`;
+        }).join('');
+        setHTML('plates-content', `<nav class="pf-menu">${rows}</nav>`);
+        document.querySelectorAll('#plates-content [data-plate]').forEach((row) => {
+            row.addEventListener('click', () => {
+                const plate = items.find((p) => p.id === Number(row.dataset.plate));
+                if (plate) openPlateDetail(plate);
+            });
+        });
+    }
+
+    // Просмотр сохранённой тарелки: та же диаграмма и список, что в конструкторе
+    function openPlateDetail(plate) {
+        const nc = App.state.content.nutrition_screen;
+        const payload = plate.payload || {};
+        const t = payload.totals || { kcal: 0, p: 0, f: 0, c: 0, pct: { p: 0, f: 0, c: 0 } };
+        const res = {
+            items: payload.items || [],
+            kcal: t.kcal || 0,
+            p: t.p || 0, f: t.f || 0, c: t.c || 0,
+            pct: t.pct || { p: 0, f: 0, c: 0 },
+        };
+        const tips = (nc.plate_config || {}).phase_tips || {};
+        const tip = tips[payload.subperiod] || tips[payload.phase] || '';
+        const resultHtml = App.screens.nutrition.plateResultHtml
+            ? App.screens.nutrition.plateResultHtml(res, tip)
+            : '';
+        setHTML('plates-content', `
+            <section class="card">
+                <h2>${esc(plate.title)}</h2>
+                ${resultHtml}
+                <button class="btn" id="pl-repeat">${esc(nc.plate_repeat)}</button>
+                <button class="btn btn-ghost" id="pl-back">${App.state.content.common.back}</button>
+                <button class="btn btn-ghost" id="pl-delete" style="color:var(--danger);">${esc(nc.plate_delete)}</button>
+            </section>
+        `);
+        el('pl-back').addEventListener('click', openPlates);
+        el('pl-repeat').addEventListener('click', () =>
+            App.screens.nutrition.openPlateBuilder(payload.items || []));
+        el('pl-delete').addEventListener('click', () => {
+            confirmSheet({
+                title: nc.plate_delete,
+                text: `«${plate.title}» будет удалена безвозвратно.`,
+                confirmLabel: nc.plate_delete,
+                danger: true,
+                onConfirm: async () => {
+                    await apiDelete(`/api/plates/${plate.id}`);
+                    openPlates();
+                },
+            });
+        });
     }
 
     // --- Подробная статистика (подэкран) ---
@@ -426,5 +512,5 @@ App.screens.profile = (() => {
         });
     }
 
-    return { onShow, openStats, openEditGoals };
+    return { onShow, openStats, openEditGoals, openPlates };
 })();

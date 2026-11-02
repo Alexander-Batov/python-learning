@@ -1141,50 +1141,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 }
 
 /* ============ Питание ============ */
-.plate-visual {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 12px;
-    background: var(--surface-warm);
-    border-radius: var(--radius);
-}
-
-.plate-circle {
-    width: 92px;
-    height: 92px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    background: conic-gradient(
-        #A9B388 0deg 180deg,
-        #B99470 180deg 270deg,
-        #F9EBC7 270deg 360deg
-    );
-    border: 4px solid var(--surface);
-    box-shadow: inset 0 0 0 2px var(--background), var(--shadow-stat);
-}
-
-.plate-legend {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-.plate-dot {
-    display: inline-block;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    margin-right: 7px;
-}
-
-.plate-dot-veg { background: #A9B388; }
-.plate-dot-protein { background: #B99470; }
-.plate-dot-carbs { background: #F9EBC7; border: 1px solid var(--border-soft); }
-.plate-dot-fats { background: #D9C4A3; }
 
 .notice-scroll {
     display: flex;
@@ -3149,6 +3105,93 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     font-size: 11px;
     line-height: 1.4;
     color: var(--text-secondary);
+}
+
+.nt-phase-tip {
+    margin-top: 2px;
+    font-size: 11px;
+    line-height: 1.35;
+    font-weight: 600;
+    color: var(--accent-dark);
+}
+
+/* --- Результат конструктора тарелки: диаграмма + Б/Ж/У + список --- */
+.pb-result {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin: 14px 0;
+}
+
+.pb-donut {
+    flex-shrink: 0;
+}
+
+.pb-donut-num {
+    font-family: var(--font-head);
+    font-size: 26px;
+    font-weight: 600;
+    fill: var(--text-primary);
+}
+
+.pb-donut-cap {
+    font-family: var(--font-body);
+    font-size: 10.5px;
+    fill: var(--text-secondary);
+}
+
+.pb-macros {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.pb-macro {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.pb-macro-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.pb-macro-name {
+    flex: 1;
+    color: var(--text-primary);
+}
+
+.pb-macro-val {
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.pb-items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 4px 0 12px;
+    padding: 12px;
+    background: var(--surface-warm);
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.pb-tip {
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 12px;
 }
 
 .nt-dots {

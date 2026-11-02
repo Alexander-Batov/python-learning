@@ -127,6 +127,7 @@ App.screens.nutrition = (() => {
                 <span class="nt-phase-icon">${Components.icon(PHASE_ICON[key] || 'sun', 22)}</span>
                 <span class="nt-phase-name">${esc((phases[key] || {}).name || '')}</span>
                 <span class="nt-phase-text">${esc((phases[key] || {}).food_focus || '')}</span>
+                <span class="nt-phase-tip">${esc((phases[key] || {}).food_tip || '')}</span>
             </div>`).join('');
         return `
         <section>
@@ -247,64 +248,282 @@ App.screens.nutrition = (() => {
         `);
     }
 
-    // --- Конструктор тарелки: мультивыбор продуктов + свой вариант в каждой категории ---
-    const builder = { step: 0, picked: {}, other: {} };
+    // --- Конструктор тарелки: мультивыбор продуктов + свой вариант в каждой
+    // категории → пара уточняющих вопросов → результат с расчётом КБЖУ.
+    // Формула простая и прозрачная: суммируем порции-ориентиры продуктов
+    // (константы в content.json plate_items/plate_config), итог умножаем
+    // на поправки аппетита и цели. Проценты Б/Ж/У — от калорий макросов
+    // (Б·4, Ж·9, У·4 ккал/г). Свой вариант считается по средней порции группы.
+    const BUILDER_KEYS = ['proteins', 'veg', 'carbs', 'fats'];
+    const builder = {
+        step: 0,
+        picked: {},     // cat -> [имена продуктов из каталога]
+        other: {},      // cat -> свой вариант (строка)
+        goal: 'maintain',
+        appetite: 'normal',
+    };
 
-    function openPlateBuilder() {
+    function plateCfg() {
+        return App.state.content.nutrition_screen.plate_config || {};
+    }
+
+    function openPlateBuilder(restoreItems) {
         builder.step = 0;
         builder.picked = {};
         builder.other = {};
+        builder.goal = 'maintain';
+        builder.appetite = 'normal';
+        builder.showOtherKey = null;
+        if (restoreItems) {
+            // «Повторить набор» из сохранённой тарелки: каталожные продукты
+            // возвращаем в чипы, свои варианты — в поле «Другое» категории
+            restoreItems.forEach((it) => {
+                if (!BUILDER_KEYS.includes(it.cat)) return;
+                if (it.custom) {
+                    builder.other[it.cat] = it.name;
+                    builder.showOtherKey = it.cat;
+                } else {
+                    builder.picked[it.cat] = builder.picked[it.cat] || [];
+                    if (!builder.picked[it.cat].includes(it.name)) {
+                        builder.picked[it.cat].push(it.name);
+                    }
+                }
+            });
+            builder.step = BUILDER_KEYS.length; // сразу к уточняющим вопросам
+        }
         renderBuilder();
         showScreen('plate');
     }
 
-    const BUILDER_KEYS = ['proteins', 'veg', 'carbs', 'fats'];
+    // Карточка продукта из каталога по имени; null, если это свой вариант
+    function catalogItem(cat, name) {
+        const items = App.state.content.nutrition_screen.plate_items[cat] || [];
+        return items.find((o) => o.name === name) || null;
+    }
 
     // Выбранное в категории: отмеченные продукты + (опционально) свой вариант
-    function pickedItems(key) {
+    function pickedNames(key) {
         const items = [...(builder.picked[key] || [])];
         const custom = (builder.other[key] || '').trim();
         if (custom) items.push(custom);
         return items;
     }
 
+    // Все выбранные позиции с порциями и макросами (custom — по средней группы)
+    function collectedItems() {
+        const cfg = plateCfg();
+        const items = [];
+        BUILDER_KEYS.forEach((cat) => {
+            pickedNames(cat).forEach((name) => {
+                const found = catalogItem(cat, name);
+                if (found) {
+                    items.push({ cat, name, custom: false, ...found });
+                } else {
+                    const def = (cfg.default_portion || {})[cat] || {};
+                    items.push({ cat, name, custom: true, ...def });
+                }
+            });
+        });
+        return items;
+    }
+
+    // Итог расчёта: позиции с учётом поправок, суммы и проценты Б/Ж/У
+    function computeResult() {
+        const cfg = plateCfg();
+        const mult = ((cfg.appetite_adjust || {})[builder.appetite] || 1)
+            * ((cfg.goal_adjust || {})[builder.goal] || 1);
+        const items = collectedItems().map((it) => ({
+            ...it,
+            grams: Math.round(it.grams * mult),
+            kcal: Math.round(it.kcal * mult),
+            p: Math.round(it.p * mult * 10) / 10,
+            f: Math.round(it.f * mult * 10) / 10,
+            c: Math.round(it.c * mult * 10) / 10,
+        }));
+        const sum = (k) => Math.round(items.reduce((acc, it) => acc + (it[k] || 0), 0));
+        const kcalFrom = { p: sum('p') * 4, f: sum('f') * 9, c: sum('c') * 4 };
+        const totalMacroKcal = kcalFrom.p + kcalFrom.f + kcalFrom.c || 1;
+        return {
+            items,
+            kcal: sum('kcal'),
+            p: sum('p'), f: sum('f'), c: sum('c'),
+            pct: {
+                p: Math.round((kcalFrom.p / totalMacroKcal) * 100),
+                f: Math.round((kcalFrom.f / totalMacroKcal) * 100),
+                c: Math.round((kcalFrom.c / totalMacroKcal) * 100),
+            },
+        };
+    }
+
+    // Круговая диаграмма Б/Ж/У: три дуги, в центре суммарные ккал
+    function macroDonut(res, kcalWord) {
+        const size = 148;
+        const r = (size - 18) / 2;
+        const cx = size / 2;
+        const circ = 2 * Math.PI * r;
+        const segs = [
+            { pct: res.pct.p, color: 'var(--olive)' },
+            { pct: res.pct.f, color: 'var(--accent)' },
+            { pct: res.pct.c, color: 'var(--accent-warm)' },
+        ];
+        let offset = 0;
+        const arcs = segs.map((s) => {
+            const len = (circ * s.pct) / 100;
+            const arc = len > 0 ? `<circle cx="${cx}" cy="${cx}" r="${r}" fill="none"
+                stroke="${s.color}" stroke-width="14"
+                stroke-dasharray="${len} ${circ - len}"
+                stroke-dashoffset="${-offset}"
+                transform="rotate(-90 ${cx} ${cx})"/>` : '';
+            offset += len;
+            return arc;
+        }).join('');
+        return `
+        <svg class="pb-donut" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"
+             role="img" aria-label="${res.pct.p}% белки, ${res.pct.f}% жиры, ${res.pct.c}% углеводы">
+            <circle cx="${cx}" cy="${cx}" r="${r}" fill="none"
+                    stroke="var(--border)" stroke-width="14"/>
+            ${arcs}
+            <text x="50%" y="48%" text-anchor="middle" class="pb-donut-num">${res.kcal}</text>
+            <text x="50%" y="60%" text-anchor="middle" class="pb-donut-cap">${esc(kcalWord)}</text>
+        </svg>`;
+    }
+
+    // Текущая фаза/подпериод строкой и совет по фазе
+    function platePhaseInfo() {
+        const cycle = App.state.cycle || {};
+        const phases = App.state.content.phases || {};
+        const subs = App.state.content.subperiods || {};
+        const tips = (plateCfg().phase_tips) || {};
+        const sub = subs[cycle.subperiod] || null;
+        if (!cycle.phase) return { label: '', tip: tips.luteal || '' };
+        if (sub) {
+            return {
+                label: `${(phases[cycle.phase] || {}).name || ''} · ${sub.name}`.replace(/^ · /, ''),
+                tip: tips[cycle.subperiod] || tips[cycle.phase] || '',
+            };
+        }
+        return {
+            label: (phases[cycle.phase] || {}).name || '',
+            tip: tips[cycle.phase] || '',
+        };
+    }
+
+    // Разметка результата (общая для конструктора и просмотра сохранённой)
+    function plateResultHtml(res, phaseTip) {
+        const c = App.state.content.nutrition_screen;
+        const names = c.plate_macro_names || { p: 'Белки', f: 'Жиры', c: 'Углеводы' };
+        const row = (key, grams, pct, color) => `
+            <div class="pb-macro">
+                <span class="pb-macro-dot" style="background:${color};"></span>
+                <span class="pb-macro-name">${esc(names[key])}</span>
+                <span class="pb-macro-val">${grams} г · ${pct}%</span>
+            </div>`;
+        return `
+            <div class="pb-result">
+                ${macroDonut(res, c.plate_kcal_word || 'ккал')}
+                <div class="pb-macros">
+                    ${row('p', res.p, res.pct.p, 'var(--olive)')}
+                    ${row('f', res.f, res.pct.f, 'var(--accent)')}
+                    ${row('c', res.c, res.pct.c, 'var(--accent-warm)')}
+                </div>
+            </div>
+            <ul class="pb-items">
+                ${res.items.map((it) => `<li>${esc(it.name)} — ~${it.grams} г</li>`).join('')}
+            </ul>
+            ${phaseTip ? `<p class="pb-tip">${esc(phaseTip)}</p>` : ''}`;
+    }
+
     function renderBuilder() {
         const c = App.state.content.nutrition_screen;
         const key = BUILDER_KEYS[builder.step];
         const stepLabels = c.plate_builder_steps;
-        const done = builder.step >= BUILDER_KEYS.length;
+        const isQuestions = builder.step === BUILDER_KEYS.length;
+        const isResult = builder.step > BUILDER_KEYS.length;
         const stepsBar = stepLabels.map((_, i) =>
-            `<div class="builder-step${i < builder.step || done ? ' on' : ''}"></div>`).join('');
+            `<div class="builder-step${i < builder.step ? ' on' : ''}"></div>`).join('');
         const pickedSummary = BUILDER_KEYS
-            .filter((k) => pickedItems(k).length)
-            .map((k, i) => `${stepLabels[i].toLowerCase()}: <b>${esc(pickedItems(k).join(', '))}</b>`).join(' · ');
+            .filter((k) => pickedNames(k).length)
+            .map((k, i) => `${stepLabels[i].toLowerCase()}: <b>${esc(pickedNames(k).join(', '))}</b>`).join(' · ');
 
-        if (done) {
+        // --- Финальный шаг: результат с расчётом ---
+        if (isResult) {
+            const res = computeResult();
+            const phase = platePhaseInfo();
             setHTML('plate-builder', `
                 <section class="card">
-                    <h2>${c.plate_ready} ✓</h2>
-                    <div class="plate-visual">
-                        <div class="plate-circle"></div>
-                        <p class="subtitle">${pickedSummary}</p>
-                    </div>
-                    <button class="btn" id="pb-save">${c.plate_save}</button>
-                    <button class="btn btn-ghost" id="pb-restart">${c.plate_restart}</button>
+                    <div class="builder-steps">${stepsBar}</div>
+                    <h2>${esc(c.plate_ready)} ✓</h2>
+                    ${plateResultHtml(res, phase.tip)}
+                    <button class="btn" id="pb-save">${esc(c.plate_save)}</button>
+                    <button class="btn btn-ghost" id="pb-restart">${esc(c.plate_restart)}</button>
                     <p class="form-message" id="pb-msg"></p>
                 </section>
             `);
-            el('pb-save').addEventListener('click', () => {
-                el('pb-msg').textContent = c.plate_saved;
-                el('pb-msg').classList.add('ok');
-                el('pb-save').disabled = true;
+            el('pb-save').addEventListener('click', async () => {
+                const btn = el('pb-save');
+                btn.disabled = true;
+                const cycle = App.state.cycle || {};
+                const title = `Тарелка · ${formatDayMonth(todayISO())}`;
+                const plate = {
+                    created: todayISO(),
+                    phase: cycle.phase || null,
+                    subperiod: cycle.subperiod || null,
+                    goal: builder.goal,
+                    appetite: builder.appetite,
+                    items: res.items,
+                    totals: { kcal: res.kcal, p: res.p, f: res.f, c: res.c, pct: res.pct },
+                };
+                try {
+                    await apiPost('/api/plates', { title, plate });
+                    el('pb-msg').textContent = c.plate_saved;
+                    el('pb-msg').classList.add('ok');
+                } catch (err) {
+                    btn.disabled = false;
+                    el('pb-msg').textContent = `Не сохранилось: ${apiErrorText(err)}`;
+                }
             });
-            el('pb-restart').addEventListener('click', openPlateBuilder);
+            el('pb-restart').addEventListener('click', () => openPlateBuilder());
             return;
         }
 
+        // --- Шаг уточняющих вопросов (цель + аппетит, фаза — автоматически) ---
+        if (isQuestions) {
+            const phase = platePhaseInfo();
+            const chipRow = (opts, current, field) => opts.map((o) => `
+                <button class="option-chip${current === o.id ? ' active' : ''}"
+                    data-q="${field}" data-value="${o.id}">${esc(o.label)}</button>`).join('');
+            setHTML('plate-builder', `
+                <section class="card">
+                    <div class="builder-steps">${stepsBar}</div>
+                    <h2>${esc(c.plate_questions_title)}</h2>
+                    ${phase.label ? `<p class="subtitle">${esc(c.plate_phase_prefix)}: <b>${esc(phase.label)}</b></p>` : ''}
+                    <p class="checkin-label">${esc(c.plate_goal_title)}</p>
+                    <div class="option-row">${chipRow(c.plate_goal_options, builder.goal, 'goal')}</div>
+                    <p class="checkin-label">${esc(c.plate_appetite_title)}</p>
+                    <div class="option-row">${chipRow(c.plate_appetite_options, builder.appetite, 'appetite')}</div>
+                    ${pickedSummary ? `<div class="builder-picked">${pickedSummary}</div>` : ''}
+                    <button class="btn" id="pb-calc">${esc(c.plate_calc)}</button>
+                </section>
+            `);
+            document.querySelectorAll('#plate-builder [data-q]').forEach((chip) => {
+                chip.addEventListener('click', () => {
+                    builder[chip.dataset.q] = chip.dataset.value;
+                    document.querySelectorAll(`#plate-builder [data-q="${chip.dataset.q}"]`)
+                        .forEach((x) => x.classList.toggle('active', x === chip));
+                });
+            });
+            el('pb-calc').addEventListener('click', () => {
+                builder.step += 1;
+                renderBuilder();
+            });
+            return;
+        }
+
+        // --- Шаги категорий ---
         const options = c.plate_items[key] || [];
         const custom = builder.other[key] || '';
         const showOther = builder.showOtherKey === key;
-        const hasPick = pickedItems(key).length > 0;
+        const hasPick = pickedNames(key).length > 0;
         setHTML('plate-builder', `
             <section class="card">
                 <div class="builder-steps">${stepsBar}</div>
@@ -312,8 +531,8 @@ App.screens.nutrition = (() => {
                 <p class="subtitle">${c.plate_builder_hint}</p>
                 <div class="option-row">
                     ${options.map((o) => `
-                        <button class="option-chip${(builder.picked[key] || []).includes(o) ? ' active' : ''}"
-                            data-pick="${esc(o)}">${esc(o)}</button>`).join('')}
+                        <button class="option-chip${(builder.picked[key] || []).includes(o.name) ? ' active' : ''}"
+                            data-pick="${esc(o.name)}">${esc(o.name)}</button>`).join('')}
                     <button class="option-chip${showOther ? ' active' : ''}"
                         data-pick="__other">${esc(c.plate_other || 'Другое')}</button>
                 </div>
@@ -330,7 +549,7 @@ App.screens.nutrition = (() => {
         `);
 
         const updateNext = () => {
-            el('pb-next').disabled = pickedItems(key).length === 0;
+            el('pb-next').disabled = pickedNames(key).length === 0;
         };
 
         document.querySelectorAll('#plate-builder [data-pick]').forEach((chip) => {
@@ -369,5 +588,5 @@ App.screens.nutrition = (() => {
         });
     }
 
-    return { onShow, openRecipe, openPlateBuilder };
+    return { onShow, openRecipe, openPlateBuilder, plateResultHtml, macroDonut };
 })();

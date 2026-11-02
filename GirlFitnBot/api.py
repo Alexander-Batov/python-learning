@@ -1068,6 +1068,43 @@ async def user_delete_handler(request: web.Request) -> web.Response:
     return web.json_response({"deleted": True})
 
 
+# --- Сохранённые тарелки ---
+
+async def plates_handler(request: web.Request) -> web.Response:
+    """GET /api/plates — список; POST /api/plates {title, plate} — сохранить."""
+    user_id = await _user_id(request)
+    if user_id is None:
+        return _err("invalid initData", 401)
+
+    if request.method == "GET":
+        return web.json_response({"items": db.list_plates(user_id)})
+
+    try:
+        payload = await _json_payload(request)
+    except ValueError as exc:
+        return _err(str(exc))
+    title = str(payload.get("title") or "").strip()[:80]
+    plate = payload.get("plate")
+    if not title or not isinstance(plate, dict) or not plate.get("items"):
+        return _err("нужны title и plate с items")
+    plate_id = db.add_plate(user_id, title, plate)
+    return web.json_response({"id": plate_id, "title": title})
+
+
+async def plate_delete_handler(request: web.Request) -> web.Response:
+    """DELETE /api/plates/{id} — удалить сохранённую тарелку."""
+    user_id = await _user_id(request)
+    if user_id is None:
+        return _err("invalid initData", 401)
+    try:
+        plate_id = _parse_int(request.match_info["id"], 1, 10**9, "id")
+    except ValueError as exc:
+        return _err(str(exc))
+    if not db.delete_plate(user_id, plate_id):
+        return _err("тарелка не найдена", 404)
+    return web.json_response({"deleted": True, "id": plate_id})
+
+
 # --- Регистрация маршрутов ---
 
 def setup_routes(app: web.Application) -> None:
@@ -1101,3 +1138,5 @@ def setup_routes(app: web.Application) -> None:
     app.router.add_get("/api/user", user_api_handler)
     app.router.add_patch("/api/user", user_patch_handler)
     app.router.add_delete("/api/user", user_delete_handler)
+    app.router.add_route("*", "/api/plates", plates_handler)
+    app.router.add_delete("/api/plates/{id}", plate_delete_handler)

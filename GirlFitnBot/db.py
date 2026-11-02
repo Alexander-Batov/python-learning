@@ -323,6 +323,17 @@ def init() -> None:
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS saved_plates (
+                id INTEGER PRIMARY KEY,
+                tg_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                payload TEXT NOT NULL DEFAULT '{}',
+                created_at TEXT NOT NULL
+            )
+            """
+        )
 
         _seed_library(conn)
     logger.info("База данных готова: %s", config.db_path)
@@ -479,6 +490,7 @@ def delete_user(tg_id: int) -> None:
             "DELETE FROM video_completions WHERE tg_id = ?", (tg_id,)
         )
         conn.execute("DELETE FROM nutrition_logs WHERE tg_id = ?", (tg_id,))
+        conn.execute("DELETE FROM saved_plates WHERE tg_id = ?", (tg_id,))
         conn.execute(
             "DELETE FROM habit_completions WHERE user_habit_id IN "
             "(SELECT id FROM user_habits WHERE tg_id = ?)", (tg_id,),
@@ -890,6 +902,50 @@ def get_habit_completions_range(
             """,
             (tg_id, from_date, to_date),
         ).fetchall()
+
+
+# --- Сохранённые тарелки ---
+
+def list_plates(tg_id: int) -> list:
+    """Сохранённые тарелки пользователя, новые сверху."""
+    with sqlite3.connect(config.db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            """
+            SELECT id, title, payload, created_at
+            FROM saved_plates
+            WHERE tg_id = ?
+            ORDER BY id DESC
+            """,
+            (tg_id,),
+        ).fetchall()
+    return [
+        {**dict(row), "payload": json.loads(row["payload"])}
+        for row in rows
+    ]
+
+
+def add_plate(tg_id: int, title: str, payload: dict) -> int:
+    """Сохраняет тарелку (расчёт конструктора) и возвращает её id."""
+    with sqlite3.connect(config.db_path) as conn:
+        cur = conn.execute(
+            """
+            INSERT INTO saved_plates (tg_id, title, payload, created_at)
+            VALUES (?, ?, ?, datetime('now'))
+            """,
+            (tg_id, title, json.dumps(payload, ensure_ascii=False)),
+        )
+        return cur.lastrowid
+
+
+def delete_plate(tg_id: int, plate_id: int) -> bool:
+    """Удаляет тарелку пользователя; False, если такой нет."""
+    with sqlite3.connect(config.db_path) as conn:
+        cur = conn.execute(
+            "DELETE FROM saved_plates WHERE id = ? AND tg_id = ?",
+            (plate_id, tg_id),
+        )
+        return cur.rowcount > 0
 
 
 # --- Уведомления ---
