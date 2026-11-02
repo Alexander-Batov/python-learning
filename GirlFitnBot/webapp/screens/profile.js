@@ -130,7 +130,7 @@ App.screens.profile = (() => {
         const cc = c();
         const rows = (cc.menu || []).map((m, i) => `
             <button type="button" class="card-like pf-row" data-menu="${esc(m.action)}">
-                <span class="pf-row-icon">${Components.icon(m.icon || 'leaf', 18)}</span>
+                <span class="pf-row-icon">${Components.icon(m.icon || 'star', 18)}</span>
                 <span class="pf-row-txt">
                     <span class="pf-row-title">${esc(m.title)}</span>
                     <span class="pf-row-sub">${esc(m.sub.replace('{version}', cc.version || ''))}</span>
@@ -174,7 +174,7 @@ App.screens.profile = (() => {
                     <h3>${cc.regularity_card_title}</h3>
                     <span class="regularity-number">${p.regularity_pct}%</span>
                 </div>
-                <p class="subtitle">${cc.regularity_cheer} 💛</p>
+                <p class="subtitle">${cc.regularity_cheer}</p>
             </section>
             <section class="card">
                 <h3>📊 ${cc.my_progress} (${p.month})</h3>

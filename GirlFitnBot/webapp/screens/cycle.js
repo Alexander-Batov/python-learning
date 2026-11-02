@@ -109,7 +109,7 @@ App.screens.cycle = (() => {
             : '';
         return `
         <div class="cy-intro">
-            <h2 class="cy-cal-title">Твой календарь <span class="cy-sprout">🌱</span></h2>
+            <h2 class="cy-cal-title">Твой календарь</h2>
             <p class="cy-today-line">Сегодня, ${esc(dateStr)}${esc(dayStr)}</p>
         </div>`;
     }
@@ -420,7 +420,7 @@ App.screens.cycle = (() => {
                 <div class="card">
                     <h2 style="text-transform:capitalize">${formatFullDate(dateISO)}</h2>
                     <p class="empty-hint">Здесь ещё нет данных — отслеживание цикла начинается
-                    позже. Выбери другой день 🌷</p>
+                    позже. Выбери другой день</p>
                 </div>`;
             return;
         }

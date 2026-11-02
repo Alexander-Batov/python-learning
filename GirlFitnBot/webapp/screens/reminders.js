@@ -67,7 +67,7 @@ App.screens.reminders = (() => {
             <button class="menu-row card" id="gf-goal-row" style="width:100%;">
                 <span>${c.goal_row}</span><span class="menu-chevron">›</span>
             </button>
-            <p class="text-muted" style="text-align:center;">Тёплые напоминания поддерживают, а не давят ♡</p>
+            <p class="text-muted" style="text-align:center;">Тёплые напоминания поддерживают, а не давят</p>
         `);
 
         bindAll();

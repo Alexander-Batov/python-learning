@@ -35,7 +35,7 @@ App.screens.nutrition = (() => {
         bindAll();
     }
 
-    // --- Шапка: «Питание» + веточка + карточка цикла + подпись ---
+    // --- Шапка: «Питание» + карточка цикла + подпись ---
     function renderHeader() {
         const cycle = App.state.cycle;
         const phase = cycle && cycle.phase
@@ -51,7 +51,6 @@ App.screens.nutrition = (() => {
                 <p class="td-sub">Забота о себе — это энергия<br>для твоих целей</p>
             </div>
             <div class="td-header-side">
-                ${Components.branch(54, 84)}
                 ${card}
             </div>
         </header>`;
@@ -110,14 +109,14 @@ App.screens.nutrition = (() => {
             </div>
             <button type="button" class="btn" id="nt-plate-cta">${esc(cta || 'Сформировать тарелку')}</button>
             <div class="nt-note">
-                <span class="nt-note-icon">${Components.icon('leaf', 18)}</span>
+                <span class="nt-note-icon">${Components.icon('sun', 18)}</span>
                 <p>${esc(r.note)}</p>
             </div>
         </section>`;
     }
 
     // --- Питание по фазам цикла ---
-    const PHASE_ICON = { menstrual: 'drop', follicular: 'leaf', ovulatory: 'sun', luteal: 'moon' };
+    const PHASE_ICON = { menstrual: 'drop', follicular: 'zap', ovulatory: 'sun', luteal: 'moon' };
     const PHASE_TINT = { menstrual: 'nt-pink', follicular: 'nt-green', ovulatory: 'nt-pink', luteal: 'nt-pink' };
 
     function renderPhasesFood() {
@@ -125,7 +124,7 @@ App.screens.nutrition = (() => {
         const phases = App.state.content.phases;
         const cards = TODAY_PHASE_ORDER.map((key) => `
             <div class="nt-phase-card ${PHASE_TINT[key]}" data-phase="${key}" role="button" tabindex="0">
-                <span class="nt-phase-icon">${Components.icon(PHASE_ICON[key] || 'leaf', 22)}</span>
+                <span class="nt-phase-icon">${Components.icon(PHASE_ICON[key] || 'sun', 22)}</span>
                 <span class="nt-phase-name">${esc((phases[key] || {}).name || '')}</span>
                 <span class="nt-phase-text">${esc((phases[key] || {}).food_focus || '')}</span>
             </div>`).join('');

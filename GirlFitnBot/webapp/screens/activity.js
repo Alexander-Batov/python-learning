@@ -72,12 +72,12 @@ App.screens.activity = (() => {
         bindAll(items);
     }
 
-    // --- Шапка: «Активность 🌱» + профиль + подзаголовок ---
+    // --- Шапка: «Активность» + профиль + подзаголовок ---
     function renderHeader() {
         return `
         <header class="ac-head">
             <div class="ac-head-text">
-                <h1 class="cy-title">Активность <span class="cy-sprout">🌱</span></h1>
+                <h1 class="cy-title">Активность</h1>
                 <p class="ac-sub">Движение — это забота о себе.
                 Физическая активность поддерживает энергию,
                 улучшает настроение и помогает чувствовать баланс.</p>
@@ -529,7 +529,7 @@ App.screens.activity = (() => {
         const w = player.workout;
         setHTML('workout-player', `
             <section class="card player-stage">
-                <p style="font-size:44px;">♡</p>
+                <p style="font-size:44px;">✓</p>
                 <h1>${c.player_done_title}</h1>
                 <p class="subtitle">${w.duration_min} ${c.player_done_text}</p>
             </section>

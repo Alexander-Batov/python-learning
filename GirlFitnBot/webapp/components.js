@@ -5,7 +5,6 @@
 //
 // Доступно:
 //   Components.cycleCard(day, phaseName, {compact})
-//   Components.branch(width, height)
 //   Components.sectionHeader(title, linkText)
 //   Components.chips(items, activeIndex)
 //   Components.pillButton(label, variant, small)   // variant: primary|secondary|hero
@@ -28,28 +27,6 @@ const Components = (() => {
             <span class="gf-cycle-card-day">${esc(day)}</span>
             ${opts.withoutPhase ? '' : `<span class="gf-cycle-card-phase">${esc(phaseName || '')}</span>`}
         </div>`;
-    }
-
-    // --- Декоративная SVG-веточка (стебель оливковый, листья olive/terracotta) ---
-    function branch(width = 56, height = 88) {
-        return `
-        <svg class="gf-branch" width="${width}" height="${height}" viewBox="0 0 100 150"
-             fill="none" aria-hidden="true">
-            <path d="M50 148 C46 110 54 70 48 8" stroke="var(--olive)"
-                  stroke-width="2.4" stroke-linecap="round"/>
-            <path d="M50 124 C 38 118, 30 105, 31 88 C 44 95, 51 108, 50 124 Z"
-                  fill="var(--olive)" opacity="0.85"/>
-            <path d="M51 104 C 63 98, 71 85, 70 68 C 57 75, 50 88, 51 104 Z"
-                  fill="var(--terracotta-soft)" opacity="0.9"/>
-            <path d="M49 82 C 37 76, 29 63, 30 46 C 43 53, 50 66, 49 82 Z"
-                  fill="var(--olive)" opacity="0.75"/>
-            <path d="M50 62 C 62 56, 69 44, 68 28 C 56 34, 49 47, 50 62 Z"
-                  fill="var(--terracotta-soft)" opacity="0.8"/>
-            <path d="M48 42 C 39 37, 33 27, 34 14 C 44 19, 49 29, 48 42 Z"
-                  fill="var(--olive)" opacity="0.65"/>
-            <circle cx="48" cy="10" r="3.4" fill="var(--accent)" opacity="0.85"/>
-            <circle cx="60" cy="36" r="2.2" fill="var(--accent)" opacity="0.5"/>
-        </svg>`;
     }
 
     // --- Заголовок секции: serif слева + опциональная ссылка справа ---
@@ -209,7 +186,7 @@ const Components = (() => {
     }
 
     return {
-        cycleCard, branch, sectionHeader, chips,
+        cycleCard, sectionHeader, chips,
         pillButton, rowCard, weekDots, statBlock, icon,
         kinescopePlayer, bindKinescopePlayers, videoPosterUrl,
     };

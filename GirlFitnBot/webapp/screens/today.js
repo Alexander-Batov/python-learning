@@ -165,7 +165,7 @@ App.screens.today = (() => {
                 </div>
                 <div class="td-activity-week">${Components.weekDots(labels, doneIdx, labels)}</div>
             </div>
-            <p class="td-activity-note">${Components.icon('leaf', 16)} Уже лучше, чем на прошлой неделе ♡</p>
+            <p class="td-activity-note">Уже лучше, чем на прошлой неделе</p>
         </section>`;
     }
 

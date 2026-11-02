@@ -24,7 +24,7 @@ def main_menu_keyboard() -> ReplyKeyboardMarkup:
         keyboard=[
             [
                 KeyboardButton(
-                    text="🌸 Открыть приложение",
+                    text="Открыть приложение",
                     web_app=WebAppInfo(url=config.webapp_url),
                 )
             ],

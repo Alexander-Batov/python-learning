@@ -51,7 +51,7 @@ App.screens.achievements = (() => {
                 </div>
             </section>` : `
             <section class="card card-warm">
-                <h3>Все достижения получены 🌸</h3>
+                <h3>Все достижения получены</h3>
                 <p class="subtitle">Ты заботишься о себе блестяще — каталог пополнится новыми целями.</p>
             </section>`;
 

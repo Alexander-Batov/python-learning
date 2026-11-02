@@ -45,7 +45,7 @@ App.screens.habits = (() => {
         bindAll();
     }
 
-    // --- Шапка: «Привычки» + веточка + карточка цикла ---
+    // --- Шапка: «Привычки» + карточка цикла ---
     function renderHeader() {
         const cycle = App.state.cycle;
         const phase = cycle && cycle.phase
@@ -61,7 +61,6 @@ App.screens.habits = (() => {
                 <p class="td-sub hb-sub">${esc(tt().subtitle).replace('\n', '<br>')}</p>
             </div>
             <div class="td-header-side">
-                ${Components.branch(38, 64)}
                 ${card}
             </div>
         </header>`;
@@ -226,7 +225,6 @@ App.screens.habits = (() => {
             <div class="ht-nutrition-body">
                 <div class="ht-meals">${chips}</div>
                 <div class="ht-plate">
-                    ${Components.branch(20, 38)}
                     <img src="img/plate.jpg" alt="Тарелка дня">
                 </div>
             </div>

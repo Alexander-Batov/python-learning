@@ -113,7 +113,7 @@ const Gamification = (() => {
         const c = App.state.content.gamification;
         openModal(`
             <div class="player-stage" style="padding:8px 0 2px;">
-                <p style="font-size:40px;">🌸</p>
+                <p style="font-size:40px;">⭐</p>
                 <h2>${c.levelup_title}</h2>
                 <p class="subtitle">${c.levelup_text.replace('{name}', level.name)}</p>
                 <p class="serif" style="font-size:22px;color:var(--accent-dark);">${level.description}</p>
@@ -143,7 +143,7 @@ const Gamification = (() => {
         if (!host) return;
         const petal = document.createElement('span');
         petal.className = 'petal-pop';
-        petal.textContent = `+${amount} 🌸`;
+        petal.textContent = `+${amount}`;
         host.appendChild(petal);
         setTimeout(() => petal.remove(), 1200);
     }

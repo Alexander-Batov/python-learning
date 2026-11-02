@@ -1884,12 +1884,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     color: var(--text-primary);
 }
 
-/* --- Декоративная веточка --- */
-.gf-branch {
-    display: block;
-    flex-shrink: 0;
-}
-
 /* --- Заголовок секции --- */
 .gf-section-header {
     display: flex;
@@ -2137,7 +2131,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 
 /* === Экран: Сегодня (1в1, референс Экраны/Первая вкладка.jpg) === */
 
-/* --- Шапка: приветствие + веточка + карточка цикла --- */
+/* --- Шапка: приветствие + карточка цикла --- */
 .td-header {
     display: flex;
     justify-content: space-between;
@@ -2175,8 +2169,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     flex-shrink: 0;
     margin-top: 4px;
 }
-
-.td-header-side .gf-branch { margin-right: -8px; margin-top: 12px; }
 
 /* --- Hero текущей фазы --- */
 .td-hero {
@@ -2534,8 +2526,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     line-height: 1.2;
     color: var(--text-primary);
 }
-
-.cy-sprout { font-size: 18px; font-weight: 400; }
 
 .cy-today-line {
     margin-top: 4px;
