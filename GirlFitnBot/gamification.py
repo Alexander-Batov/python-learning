@@ -502,12 +502,13 @@ def get_water(tg_id: int, day: str) -> int:
 # --- Бонус за закрытый день ---
 
 def check_day_bonus(tg_id: int, day: str) -> None:
-    """+20, если закрыты все блоки дня: тренировка, питание (≥1 приёма),
-    вода (норма), привычка, чек-ин. Не вычитается никогда."""
+    """+20, если закрыты все блоки дня: тренировка (обычная или видео),
+    питание (≥1 приёма), вода (норма), привычка, чек-ин. Не вычитается никогда."""
     with sqlite3.connect(config.db_path) as conn:
         workout = conn.execute(
-            "SELECT 1 FROM workout_completions WHERE tg_id = ? AND date = ?",
-            (tg_id, day)).fetchone()
+            "SELECT 1 FROM workout_completions WHERE tg_id = ? AND date = ? "
+            "UNION SELECT 1 FROM video_completions WHERE tg_id = ? AND date = ?",
+            (tg_id, day, tg_id, day)).fetchone()
         nutrition = conn.execute(
             "SELECT 1 FROM nutrition_logs WHERE tg_id = ? AND date = ? "
             "AND (breakfast + lunch + dinner + snack) > 0", (tg_id, day)).fetchone()
@@ -529,8 +530,9 @@ def care_day_status(tg_id: int, day: str) -> dict:
     """Флаги блоков дня для «Твой день заботы» и карточки уровня."""
     with sqlite3.connect(config.db_path) as conn:
         workout = bool(conn.execute(
-            "SELECT 1 FROM workout_completions WHERE tg_id = ? AND date = ?",
-            (tg_id, day)).fetchone())
+            "SELECT 1 FROM workout_completions WHERE tg_id = ? AND date = ? "
+            "UNION SELECT 1 FROM video_completions WHERE tg_id = ? AND date = ?",
+            (tg_id, day, tg_id, day)).fetchone())
         nutrition_row = conn.execute(
             "SELECT (breakfast + lunch + dinner + snack) AS meals "
             "FROM nutrition_logs WHERE tg_id = ? AND date = ?",

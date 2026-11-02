@@ -522,6 +522,51 @@ async def workout_complete_handler(request: web.Request) -> web.Response:
     )
 
 
+# --- Видеотренировки (Kinescope, привязка к фазе цикла) ---
+
+async def videos_handler(request: web.Request) -> web.Response:
+    """GET /api/videos?date= — каталог видео с флагом completed за день."""
+    user_id = await _user_id(request)
+    if user_id is None:
+        return _err("invalid initData", 401)
+    day = _client_date(request)
+    items = []
+    for v in db.list_videos():
+        done = db.get_video_completion(user_id, v["id"], day)
+        items.append({**v, "completed": done is not None})
+    return web.json_response({"date": day, "items": items})
+
+
+async def video_complete_handler(request: web.Request) -> web.Response:
+    """POST /api/videos/complete {initData, video_id, date} — отметка.
+
+    Баллы — как за тренировку (workout, +30); ref_id с префиксом video:,
+    чтобы не пересекаться с отметками обычных тренировок (идемпотентность).
+    """
+    user_id = await _user_id(request)
+    if user_id is None:
+        return _err("invalid initData", 401)
+    try:
+        payload = await _json_payload(request)
+    except ValueError as exc:
+        return _err(str(exc))
+    try:
+        video_id = _parse_int(payload.get("video_id"), 1, 10**9, "video_id")
+    except ValueError as exc:
+        return _err(str(exc))
+    video = db.get_video(video_id)
+    if video is None:
+        return _err("видео не найдено", 404)
+    day = _client_date(request, payload)
+    db.complete_video(user_id, video_id, day)
+    gamification.award_points(user_id, "workout", f"video:{video['key']}", day)
+    gamification.check_day_bonus(user_id, day)
+    gamification.check_achievements(user_id)
+    return web.json_response(
+        {"date": day, "video_id": video_id, "completed": True}
+    )
+
+
 # --- Рецепты ---
 
 async def recipes_handler(request: web.Request) -> web.Response:
@@ -723,6 +768,7 @@ async def progress_api_handler(request: web.Request) -> web.Response:
 
     from_d, to_d = month_start.isoformat(), end.isoformat()
     workouts = db.get_workout_completions_range(user_id, from_d, to_d)
+    videos = db.get_video_completions_range(user_id, from_d, to_d)
     nutrition = db.get_nutrition_range(user_id, from_d, to_d)
     habits = db.get_habit_completions_range(user_id, from_d, to_d)
     wellbeing = db.get_wellbeing_range(user_id, from_d, to_d)
@@ -738,6 +784,10 @@ async def progress_api_handler(request: web.Request) -> web.Response:
             days[w["date"]]["workouts"] += 1
             days[w["date"]]["minutes"] += w["minutes"]
             total_minutes += w["minutes"]
+    # Видеотренировки тоже засчитываются в дни активности (минут нет в данных)
+    for v in videos:
+        if v["date"] in days:
+            days[v["date"]]["workouts"] += 1
     nutrition_days = 0
     for n in nutrition:
         if n["date"] in days:
@@ -778,7 +828,7 @@ async def progress_api_handler(request: web.Request) -> web.Response:
 
     return web.json_response({
         "month": month_start.strftime("%Y-%m"),
-        "workouts_completed": len(workouts),
+        "workouts_completed": len(workouts) + len(videos),
         "active_minutes": total_minutes,
         "nutrition_days": nutrition_days,
         "habit_completions": habit_done,
@@ -1030,6 +1080,8 @@ def setup_routes(app: web.Application) -> None:
     app.router.add_get("/api/workouts", workouts_handler)
     app.router.add_get("/api/workouts/daily", workout_daily_handler)
     app.router.add_post("/api/workouts/complete", workout_complete_handler)
+    app.router.add_get("/api/videos", videos_handler)
+    app.router.add_post("/api/videos/complete", video_complete_handler)
     app.router.add_get("/api/recipes", recipes_handler)
     app.router.add_get("/api/recipes/{id}", recipe_detail_handler)
     app.router.add_route("*", "/api/nutrition", nutrition_handler)

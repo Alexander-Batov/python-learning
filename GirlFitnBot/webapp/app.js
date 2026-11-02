@@ -201,6 +201,12 @@ const MAIN_SCREENS = ['today', 'cycle', 'activity', 'nutrition', 'habits', 'prof
 let lastMainScreen = 'today';
 
 function showScreen(name) {
+    // Уход с экрана видео гасит iframe-плеер, чтобы звук не играл в фоне
+    const current = document.querySelector('.screen:not(.hidden)');
+    if (current && current.id === 'screen-video' && name !== 'video') {
+        const vp = document.getElementById('video-player');
+        if (vp) vp.innerHTML = '';
+    }
     document.querySelectorAll('.screen').forEach((s) => s.classList.add('hidden'));
     const el = document.getElementById(`screen-${name}`);
     if (el) el.classList.remove('hidden');
@@ -323,6 +329,13 @@ function displayName() {
 
 function avatarLetter() {
     return esc(displayName().charAt(0).toUpperCase());
+}
+
+// Фото профиля Telegram (photo_url из initData, Bot API 7.2+).
+// Может отсутствовать (нет фото / старый клиент) — тогда аватар с буквой.
+function tgPhotoUrl() {
+    const user = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+    return (user && user.photo_url) || '';
 }
 
 // --- Экран «вне Telegram» ---

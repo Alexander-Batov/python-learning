@@ -1,7 +1,7 @@
 // Экран «Привычки» — вёрстка 1-в-1 с референсом (Экраны/Пятый экран.jpg).
-// Шесть трекеров: сон (ввод числом или интервалом, локально), питание, витамины,
-// вода («+» и ручной ввод мл/л через /api/water), шаги (ручной ввод, локально),
-// уровень энергии. Питание/витамины — клики без изменений.
+// Шесть трекеров: сон (ввод числом или интервалом, локально), питание,
+// витамины (слоты дня, локально), вода («+» и ручной ввод мл/л через /api/water),
+// шаги (ручной ввод, локально), уровень энергии. Питание — отметки через /api/nutrition.
 
 App.screens.habits = (() => {
     let todayCache = null;
@@ -197,7 +197,7 @@ App.screens.habits = (() => {
         });
     }
 
-    // --- Питание: приёмы пищи из /api/today ---
+    // --- Питание: приёмы пищи из /api/today, переключение шлёт /api/nutrition ---
     function renderNutrition() {
         const t = tt();
         const nut = (todayCache && todayCache.nutrition) || {};
@@ -206,7 +206,8 @@ App.screens.habits = (() => {
         const chips = keys.map((k, i) => {
             const on = !!nut[k];
             return `
-            <span class="ht-meal${on ? ' done' : ''}">
+            <span class="ht-meal${on ? ' done' : ''}" data-meal="${k}"
+                  role="button" tabindex="0">
                 <span class="ht-meal-dot">${on ? '✓' : ''}</span>${esc(t.meals[i] || k)}
             </span>`;
         }).join('');
@@ -232,13 +233,28 @@ App.screens.habits = (() => {
         </section>`;
     }
 
-    // --- Витамины: слоты дня (мок: утро отмечено) ---
+    // --- Витамины: слоты дня (утро/день/вечер), мультивыбор, хранится локально ---
+    function vitaminsToday() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(`gf_vitamins_${todayISO()}`) || 'null');
+            if (Array.isArray(saved)) return [0, 1, 2].map((i) => !!saved[i]);
+        } catch (err) { /* localStorage недоступен */ }
+        return [false, false, false];
+    }
+
+    function saveVitamins(done) {
+        try {
+            localStorage.setItem(`gf_vitamins_${todayISO()}`, JSON.stringify(done));
+        } catch (err) { /* localStorage недоступен — состояние живёт до перерисовки */ }
+    }
+
     function renderVitamins() {
         const t = tt();
+        const done = vitaminsToday();
         const slots = [
-            { label: t.slots[0], icon: 'sun', done: true },
-            { label: t.slots[1], icon: 'sun', done: false },
-            { label: t.slots[2], icon: 'moon', done: false },
+            { label: t.slots[0], icon: 'sun', done: done[0] },
+            { label: t.slots[1], icon: 'sun', done: done[1] },
+            { label: t.slots[2], icon: 'moon', done: done[2] },
         ];
         const pills = slots.map((s, i) => `
             <span class="ht-slot${s.done ? ' done' : ''}" data-slot="${i}" role="button" tabindex="0">
@@ -429,6 +445,33 @@ App.screens.habits = (() => {
                     + 'Это помогает заметить ритм питания и поддерживать стабильную энергию.');
             });
         }
+        // Клик по приёму пищи — переключение и сохранение через /api/nutrition
+        document.querySelectorAll('#habits-content .ht-meal').forEach((chip) => {
+            chip.addEventListener('click', async () => {
+                const meal = chip.dataset.meal;
+                const nut = (todayCache && todayCache.nutrition) || {};
+                chip.style.pointerEvents = 'none';
+                try {
+                    const res = await apiPost('/api/nutrition', {
+                        date: todayISO(), [meal]: nut[meal] ? 0 : 1,
+                    });
+                    todayCache.nutrition = { ...nut, ...res.meals };
+                    render();
+                } catch (err) {
+                    chip.style.pointerEvents = '';
+                    infoSheet(tt().nutrition_title, `Не сохранилось: ${apiErrorText(err)}`);
+                }
+            });
+        });
+        // Клик по слоту витаминов — независимый переключатель (можно несколько)
+        document.querySelectorAll('#habits-content .ht-slot').forEach((slot) => {
+            slot.addEventListener('click', () => {
+                const done = vitaminsToday();
+                done[Number(slot.dataset.slot)] = !done[Number(slot.dataset.slot)];
+                saveVitamins(done);
+                render();
+            });
+        });
         const vitMore = el('ht-vitamins-more');
         if (vitMore) {
             vitMore.addEventListener('click', () => {

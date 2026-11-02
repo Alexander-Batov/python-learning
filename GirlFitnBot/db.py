@@ -162,6 +162,33 @@ def init() -> None:
             )
             """
         )
+        # Видеотренировки (Kinescope-встраивание, привязка к фазе цикла)
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS videos (
+                id INTEGER PRIMARY KEY,
+                key TEXT NOT NULL UNIQUE,
+                title TEXT NOT NULL,
+                category TEXT NOT NULL,
+                phase TEXT NOT NULL DEFAULT '',
+                description TEXT NOT NULL DEFAULT '',
+                equipment TEXT NOT NULL DEFAULT '',
+                embed_url TEXT NOT NULL,
+                poster TEXT,
+                sort_order INTEGER NOT NULL DEFAULT 0
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS video_completions (
+                tg_id INTEGER NOT NULL,
+                video_id INTEGER NOT NULL,
+                date TEXT NOT NULL,
+                PRIMARY KEY (tg_id, video_id, date)
+            )
+            """
+        )
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS recipes (
@@ -312,6 +339,9 @@ def _seed_library(conn: sqlite3.Connection) -> None:
           " phase_note")),
         ("habits.json", "habits",
          ("id, title, category, description, recommended_frequency, emoji")),
+        ("videos.json", "videos",
+         ("id, key, title, category, phase, description, equipment, embed_url,"
+          " poster, sort_order")),
     ]
     for filename, table, columns in seeds:
         count = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
@@ -444,6 +474,9 @@ def delete_user(tg_id: int) -> None:
         conn.execute("DELETE FROM cycle_symptoms WHERE tg_id = ?", (tg_id,))
         conn.execute(
             "DELETE FROM workout_completions WHERE tg_id = ?", (tg_id,)
+        )
+        conn.execute(
+            "DELETE FROM video_completions WHERE tg_id = ?", (tg_id,)
         )
         conn.execute("DELETE FROM nutrition_logs WHERE tg_id = ?", (tg_id,))
         conn.execute(
@@ -638,6 +671,61 @@ def get_workout_completions_range(
         conn.row_factory = sqlite3.Row
         return conn.execute(
             "SELECT workout_id, date, minutes FROM workout_completions "
+            "WHERE tg_id = ? AND date BETWEEN ? AND ? ORDER BY date",
+            (tg_id, from_date, to_date),
+        ).fetchall()
+
+
+# --- Видеотренировки (Kinescope) ---
+
+def list_videos() -> list:
+    with sqlite3.connect(config.db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            "SELECT * FROM videos ORDER BY sort_order"
+        ).fetchall()
+    return _rows_to_dicts(rows)
+
+
+def get_video(video_id: int) -> Optional[dict]:
+    with sqlite3.connect(config.db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT * FROM videos WHERE id = ?", (video_id,),
+        ).fetchone()
+    return _rows_to_dicts([row])[0] if row else None
+
+
+def complete_video(tg_id: int, video_id: int, day: str) -> None:
+    with sqlite3.connect(config.db_path) as conn:
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO video_completions (tg_id, video_id, date)
+            VALUES (?, ?, ?)
+            """,
+            (tg_id, video_id, day),
+        )
+
+
+def get_video_completion(
+    tg_id: int, video_id: int, day: str
+) -> Optional[sqlite3.Row]:
+    with sqlite3.connect(config.db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        return conn.execute(
+            "SELECT date FROM video_completions "
+            "WHERE tg_id = ? AND video_id = ? AND date = ?",
+            (tg_id, video_id, day),
+        ).fetchone()
+
+
+def get_video_completions_range(
+    tg_id: int, from_date: str, to_date: str
+) -> list:
+    with sqlite3.connect(config.db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        return conn.execute(
+            "SELECT video_id, date FROM video_completions "
             "WHERE tg_id = ? AND date BETWEEN ? AND ? ORDER BY date",
             (tg_id, from_date, to_date),
         ).fetchall()

@@ -167,9 +167,51 @@ const Components = (() => {
             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
     }
 
+    // --- KinescopePlayer: постер 16:9 + play; iframe встраивается только по тапу
+    // (без автовоспроизведения до жеста — требование webview Telegram).
+    // Постер — video.poster или заглушка категории в стиле приложения. ---
+    const VIDEO_POSTER_DEFAULT = {
+        mobility: 'img/workout-stretch.jpg',
+        strength: 'img/rec-workout.jpg',
+        stretch: 'img/workout-yoga.jpg',
+        massage: 'img/rec-evening.jpg',
+    };
+
+    function videoPosterUrl(video) {
+        return video.poster
+            || VIDEO_POSTER_DEFAULT[video.category]
+            || 'img/rec-evening.jpg';
+    }
+
+    function kinescopePlayer(video) {
+        return `
+        <div class="kin-player" data-embed="${esc(video.embed_url)}">
+            <img class="kin-poster" src="${esc(videoPosterUrl(video))}" alt="" loading="lazy">
+            <button type="button" class="kin-play" aria-label="Смотреть видео">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"
+                     aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+            </button>
+        </div>`;
+    }
+
+    // Привязка тапа: заменяет постер на iframe-плеер. Вызывать после setHTML.
+    function bindKinescopePlayers(root) {
+        (root || document).querySelectorAll('.kin-player').forEach((box) => {
+            box.addEventListener('click', () => {
+                if (box.dataset.loaded) return;
+                box.dataset.loaded = '1';
+                const src = `${box.dataset.embed}?autoplay=1`;
+                box.innerHTML = `<iframe class="kin-iframe" src="${esc(src)}"
+                    allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                    allowfullscreen frameborder="0"></iframe>`;
+            }, { once: true });
+        });
+    }
+
     return {
         cycleCard, branch, sectionHeader, chips,
         pillButton, rowCard, weekDots, statBlock, icon,
+        kinescopePlayer, bindKinescopePlayers, videoPosterUrl,
     };
 })();
 

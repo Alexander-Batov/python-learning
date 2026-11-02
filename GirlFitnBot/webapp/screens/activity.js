@@ -7,6 +7,7 @@ App.screens.activity = (() => {
     const filters = { category: 'all', duration: '', intensity: '' };
     let catalogCache = null;
     let progressCache = null;
+    let videosCache = null;
     let showAll = false;
 
     const CATEGORY_IMG = {
@@ -20,7 +21,7 @@ App.screens.activity = (() => {
     async function onShow() {
         setHTML('activity-content', emptyState(App.state.content.common.loading));
         try {
-            await Promise.all([loadDaily(), loadProgress()]);
+            await Promise.all([loadDaily(), loadProgress(), loadVideos()]);
             render();
         } catch (err) {
             setHTML('activity-content', errorState(
@@ -31,6 +32,24 @@ App.screens.activity = (() => {
 
     async function loadDaily() {
         catalogCache = await apiGet(`/api/workouts?date=${todayISO()}`);
+    }
+
+    // Видеотренировки привязаны к лютеиновой фазе: в других фазах
+    // каталог не запрашиваем и не показываем (Видео_лютеиновая_фаза.md)
+    function phaseIsLuteal() {
+        return Boolean(App.state.cycle && App.state.cycle.phase === 'luteal');
+    }
+
+    async function loadVideos() {
+        videosCache = phaseIsLuteal()
+            ? await apiGet(`/api/videos?date=${todayISO()}`)
+            : null;
+    }
+
+    // Рекомендация дня в лютеиновой фазе — первое видео из «Силовая мягкая»
+    function dailyVideo() {
+        if (!videosCache) return null;
+        return videosCache.items.find((v) => v.key === 'luteal-str-01') || null;
     }
 
     async function loadProgress() {
@@ -45,6 +64,7 @@ App.screens.activity = (() => {
             renderHeader(),
             renderWeekCard(),
             renderTodayCard(items),
+            renderVideos(),
             renderCatalogHead(),
             renderCatalog(items),
             renderMonthStrip(),
@@ -134,6 +154,9 @@ App.screens.activity = (() => {
     }
 
     function renderTodayCard(items) {
+        // В лютеиновой фазе рекомендация дня — видео из «Силовая мягкая»
+        const video = phaseIsLuteal() ? dailyVideo() : null;
+        if (video) return renderVideoHero(video);
         const daily = pickDaily(items);
         if (!daily) return '';
         const labels = App.state.content.common.intensity_labels;
@@ -154,6 +177,77 @@ App.screens.activity = (() => {
                 <span class="ac-hero-more">Подробнее ›</span>
             </div>
         </section>`;
+    }
+
+    function renderVideoHero(v) {
+        const vc = App.state.content.activity_screen.videos;
+        const cat = (vc.categories || []).find((c) => c.id === v.category);
+        const noEquipment = !v.equipment || v.equipment === 'без оборудования';
+        return `
+        <section class="td-hero ac-hero" id="ac-hero" role="button" tabindex="0"
+                 aria-label="Начать видеотренировку">
+            <img class="td-hero-img" src="${Components.videoPosterUrl(v)}" alt="">
+            <div class="td-hero-inner">
+                <span class="td-hero-badge">Сегодня</span>
+                <h2 class="td-hero-title">Твоя активность на сегодня</h2>
+                <p class="td-hero-meta">${esc(v.title)}${cat ? ` · ${esc(cat.label)}` : ''}</p>
+                <div class="td-hero-notes">
+                    <span class="td-hero-note">${Components.icon('dumbbell', 16)} ${noEquipment ? esc(vc.no_equipment) : esc(v.equipment)}</span>
+                </div>
+                ${Components.pillButton('Начать тренировку ›', 'hero')}
+                <span class="ac-hero-more">Подробнее ›</span>
+            </div>
+        </section>`;
+    }
+
+    // --- Видеотренировки фазы: сворачиваемые секции по категориям ---
+    function renderVideos() {
+        if (!videosCache || !videosCache.items.length) return '';
+        const vc = App.state.content.activity_screen.videos;
+        const sections = vc.categories.map((cat) => {
+            const vids = videosCache.items.filter((v) => v.category === cat.id);
+            if (!vids.length) return '';
+            const open = cat.id === 'strength' ? ' open' : '';
+            return `
+            <div class="video-section${open}" data-cat="${esc(cat.id)}">
+                <button type="button" class="video-section-head">
+                    <span class="video-section-text">
+                        <span class="video-section-title">${esc(cat.label)}</span>
+                        ${cat.note ? `<span class="video-section-note">${esc(cat.note)}</span>` : ''}
+                    </span>
+                    <span class="video-section-count">${vids.length}</span>
+                    <span class="gf-chev">›</span>
+                </button>
+                <div class="video-section-body">
+                    ${vids.map(videoCard).join('')}
+                </div>
+            </div>`;
+        }).join('');
+        return `
+        <section class="ac-videos">
+            <div class="gf-section-header">
+                <h2 class="gf-section-title">${esc(vc.section_title)}</h2>
+            </div>
+            ${sections}
+        </section>`;
+    }
+
+    function videoCard(v) {
+        const vc = App.state.content.activity_screen.videos;
+        const noEquipment = !v.equipment || v.equipment === 'без оборудования';
+        return `
+        <div class="video-card" data-vid="${v.id}" role="button" tabindex="0">
+            <img class="video-card-thumb" src="${Components.videoPosterUrl(v)}" alt="" loading="lazy">
+            <span class="video-card-body">
+                <span class="video-card-name">${esc(v.title)}</span>
+                <span class="video-card-meta">${Components.icon('dumbbell', 15)} ${noEquipment ? esc(vc.no_equipment) : esc(v.equipment)}</span>
+            </span>
+            <span class="video-card-side">
+                ${v.completed
+                    ? `<span class="ac-done">${esc(vc.done)}</span>`
+                    : Components.pillButton(vc.start, 'primary', true)}
+            </span>
+        </div>`;
     }
 
     // --- Каталог: заголовок + чипы категорий ---
@@ -248,8 +342,28 @@ App.screens.activity = (() => {
 
         const hero = el('ac-hero');
         if (hero) hero.addEventListener('click', () => {
+            const video = phaseIsLuteal() ? dailyVideo() : null;
+            if (video) {
+                openVideo(video);
+                return;
+            }
             const daily = pickDaily(items);
             if (daily) openWorkout(daily);
+        });
+
+        // Видео: сворачивание секций и открытие плеера
+        document.querySelectorAll('#activity-content .video-section-head')
+            .forEach((head) => {
+                head.addEventListener('click', () => {
+                    head.closest('.video-section').classList.toggle('open');
+                });
+            });
+        document.querySelectorAll('#activity-content .video-card').forEach((card) => {
+            card.addEventListener('click', () => {
+                const v = videosCache && videosCache.items
+                    .find((x) => x.id === Number(card.dataset.vid));
+                if (v) openVideo(v);
+            });
         });
 
         // Чипы категорий: порядок как в референсе, подписи — из контента
@@ -443,9 +557,53 @@ App.screens.activity = (() => {
             .addEventListener('click', () => { clearInterval(player.timer); goBack(); });
     }
 
-    function stopPlayer() {
-        clearInterval(player.timer);
+    // ============ Видеотренировка (Kinescope) ============
+
+    function openVideo(v) {
+        const vc = App.state.content.activity_screen.videos;
+        const cat = (vc.categories || []).find((c) => c.id === v.category);
+        const noEquipment = !v.equipment || v.equipment === 'без оборудования';
+        setHTML('video-player', `
+            <section class="card">
+                ${cat ? `<span class="hero-tag" style="background:var(--surface-warm);color:var(--olive);">${esc(cat.label)}</span>` : ''}
+                <h1 style="font-size:24px;">${esc(v.title)}</h1>
+            </section>
+            ${Components.kinescopePlayer(v)}
+            <section class="card">
+                <h3>${esc(vc.equipment_title)}</h3>
+                <div class="option-row">
+                    <span class="option-chip" style="cursor:default;">${noEquipment ? esc(vc.no_equipment) : esc(v.equipment)}</span>
+                </div>
+            </section>
+            ${v.completed
+                ? `<button class="btn" disabled>${esc(vc.done)}</button>`
+                : `<button class="btn" id="vp-done">${esc(vc.mark_done)}</button>`}
+        `);
+        Components.bindKinescopePlayers(document.getElementById('video-player'));
+        const doneBtn = el('vp-done');
+        if (doneBtn) doneBtn.addEventListener('click', async () => {
+            doneBtn.disabled = true;
+            try {
+                await apiPost('/api/videos/complete', {
+                    video_id: v.id, date: todayISO(),
+                });
+                try {
+                    App.state.today = await apiGet(`/api/today?date=${todayISO()}`);
+                } catch (err) { /* сводка обновится при следующем входе */ }
+                goBack();
+                onShow();
+            } catch (err) {
+                doneBtn.disabled = false;
+                doneBtn.textContent = `Не сохранилось: ${apiErrorText(err)}`;
+            }
+        });
+        showScreen('video');
     }
 
-    return { onShow, openWorkout, stopPlayer };
+    function stopPlayer() {
+        clearInterval(player.timer);
+        // iframe-плеер гасится в app.js при уходе с экрана видео
+    }
+
+    return { onShow, openWorkout, openVideo, stopPlayer };
 })();
