@@ -74,7 +74,6 @@ App.screens.nutrition = (() => {
         <section>
             <div class="gf-section-header">
                 <h2 class="gf-section-title">${esc(r.title)}</h2>
-                <button type="button" class="gf-pill gf-pill-secondary gf-pill-sm" id="nt-plate-more">Подробнее ›</button>
             </div>
             <p class="nt-plate-sub">${esc(r.sub)}</p>
             <div class="nt-plate">
@@ -170,14 +169,11 @@ App.screens.nutrition = (() => {
         const setup = el('nt-setup');
         if (setup) setup.addEventListener('click', () => App.screens.cycle.openEditSheet());
 
-        const plateMore = el('nt-plate-more');
-        if (plateMore) plateMore.addEventListener('click', openPlateBuilder);
-
         // Тарелка-иллюстрация и CTA открывают конструктор
         const plateImg = el('nt-plate-img');
-        if (plateImg) plateImg.addEventListener('click', openPlateBuilder);
+        if (plateImg) plateImg.addEventListener('click', () => openPlateBuilder());
         const plateCta = el('nt-plate-cta');
-        if (plateCta) plateCta.addEventListener('click', openPlateBuilder);
+        if (plateCta) plateCta.addEventListener('click', () => openPlateBuilder());
 
         document.querySelectorAll('#nutrition-content .nt-phase-card').forEach((card) => {
             card.addEventListener('click', () => App.screens.cycle.openPhase(card.dataset.phase));
