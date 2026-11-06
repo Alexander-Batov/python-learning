@@ -4,9 +4,8 @@
 
 const TODAY_PHASE_ORDER = ['menstrual', 'follicular', 'ovulatory', 'luteal'];
 
-const ENERGY_EMOJIS = ['😴', '😐', '🙂', '😊', '⚡'];
+const ENERGY_SCALE = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const MOOD_EMOJIS = ['😞', '😐', '🙂', '😊', '🤩'];
-const FEELING_LABELS = ['плохо', 'нормально', 'хорошо'];
 
 App.screens.today = (() => {
 
@@ -171,79 +170,32 @@ App.screens.today = (() => {
 
     // --- 6. «За месяц» на «Сегодня» не дублируем: полная статистика — на вкладке «Активность» ---
 
-    // --- Шторка чек-ина (самочувствие + вода) ---
+    // --- Шторка чек-ина (энергия 1–10 + настроение) ---
     function openCheckin() {
         const c = App.state.content.today_screen;
-        const gc = App.state.content.gamification;
-        const t = App.state.today;
-        const wb = t.wellbeing;
-        const g = t.gamification || { water_glasses: 0, care_day: { water_norm: 8 } };
-        const norm = (g.care_day && g.care_day.water_norm) || 8;
-        const glasses = g.water_glasses || 0;
-        const drops = Array.from({ length: norm }, (_, i) =>
-            `<span class="water-drop${i < glasses ? ' full' : ''}">💧</span>`).join('');
-        const scale = (emojis, value, cls) => emojis.map((e, i) =>
-            `<button class="checkin-emoji${value === i + 1 ? ' active' : ''}"
-                data-scale="${cls}" data-value="${i + 1}">${e}</button>`).join('');
+        const wb = App.state.today.wellbeing;
+        const energyScale = ENERGY_SCALE.map((v) =>
+            `<button class="checkin-num${wb && wb.energy === v ? ' active' : ''}"
+                data-scale="energy" data-value="${v}">${v}</button>`).join('');
+        const moodScale = MOOD_EMOJIS.map((e, i) =>
+            `<button class="checkin-emoji${wb && wb.mood === i + 1 ? ' active' : ''}"
+                data-scale="mood" data-value="${i + 1}">${e}</button>`).join('');
         openModal(`
             <h2>Как чувствует себя ваше тело?</h2>
             <p class="subtitle">Выберите, что вас сейчас беспокоит</p>
             <div>
-                <p class="checkin-label">${esc(gc.water_title)} ·
-                    <span id="t-water-count">${glasses}</span> ${esc(gc.water_hint.replace('{norm}', norm))}</p>
-                <div class="water-row">
-                    <button class="water-btn" id="t-water-minus" aria-label="Меньше">−</button>
-                    <div class="water-drops" id="t-water-drops">${drops}</div>
-                    <button class="water-btn" id="t-water-plus" aria-label="Больше">＋</button>
-                </div>
-            </div>
-            <div>
                 <p class="checkin-label">${esc(c.checkin_energy)}</p>
-                <div class="checkin-row">${scale(ENERGY_EMOJIS, wb ? wb.energy : null, 'energy')}</div>
+                <div class="checkin-row checkin-row-num">${energyScale}</div>
             </div>
             <div>
                 <p class="checkin-label">${esc(c.checkin_mood)}</p>
-                <div class="checkin-row">${scale(MOOD_EMOJIS, wb ? wb.mood : null, 'mood')}</div>
-            </div>
-            <div>
-                <p class="checkin-label">${esc(c.checkin_feeling)}</p>
-                <div class="feeling-row">
-                    ${FEELING_LABELS.map((label, i) =>
-                        `<button class="feeling-btn${wb && wb.feeling === i ? ' active' : ''}"
-                            data-scale="feeling" data-value="${i}">${label}</button>`).join('')}
-                </div>
+                <div class="checkin-row">${moodScale}</div>
             </div>
             <p class="text-muted" id="t-checkin-saved">${wb ? esc(c.checkin_saved) : ''}</p>
         `);
-        const minus = el('t-water-minus');
-        if (minus) {
-            minus.addEventListener('click', () => changeWater(-1));
-            el('t-water-plus').addEventListener('click', () => changeWater(+1));
-        }
         document.querySelectorAll('#modal-root [data-scale]').forEach((btn) => {
             btn.addEventListener('click', () => saveCheckin(btn));
         });
-    }
-
-    async function changeWater(delta) {
-        const g = App.state.today.gamification;
-        const norm = (g.care_day && g.care_day.water_norm) || 8;
-        const current = g.water_glasses || 0;
-        const next = Math.max(0, Math.min(norm, current + delta));
-        if (next === current) return;
-        g.water_glasses = next;
-        const drops = el('t-water-drops').querySelectorAll('.water-drop');
-        drops.forEach((d, i) => d.classList.toggle('full', i < next));
-        el('t-water-count').textContent = String(next);
-        try {
-            const res = await apiPost('/api/water', { date: todayISO(), glasses: next });
-            g.care_day.water = res.glasses >= res.norm;
-        } catch (err) {
-            g.water_glasses = current;
-            drops.forEach((d, i) => d.classList.toggle('full', i < current));
-            el('t-water-count').textContent = String(current);
-            el('t-checkin-saved').textContent = `Не сохранилось: ${apiErrorText(err)}`;
-        }
     }
 
     async function saveCheckin(clicked) {
@@ -255,9 +207,9 @@ App.screens.today = (() => {
         const current = App.state.today.wellbeing || {};
         const payload = {
             date: todayISO(),
-            energy: scale === 'energy' ? value : (current.energy || 3),
+            energy: scale === 'energy' ? value : (current.energy || 5),
             mood: scale === 'mood' ? value : (current.mood || 3),
-            feeling: scale === 'feeling' ? value : (current.feeling == null ? 1 : current.feeling),
+            feeling: current.feeling == null ? 1 : current.feeling,
         };
         try {
             const saved = await apiPost('/api/wellbeing', payload);

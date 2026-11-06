@@ -1,0 +1,1080 @@
+======================================================================
+ТЕКСТЫ МИНИ-АППА (источник: webapp/content.json)
+Формат: путь.к.ключу = текст
+======================================================================
+
+onboarding.greeting_title = Забота о себе — это не цель. Это образ жизни
+onboarding.greeting_text = Приложение подстраивает точку входа под твой цикл: день, фазу и состояние. Содержание программы — общее для всех: тренировки, питание и привычки, которые легко вплетаются в реальную жизнь.
+onboarding.start = Начать
+onboarding.name_title = Как вас зовут?
+onboarding.name_text = Имя используется в приветствии — так приложение будет звучать дружелюбнее.
+onboarding.name_placeholder = Ваше имя
+onboarding.cycle_title = Настроим цикл
+onboarding.cycle_text = Эти данные можно изменить в любой момент — прогноз пересчитается.
+onboarding.cycle_start_label = Дата последней менструации
+onboarding.cycle_length_label = Средняя длина цикла, дней
+onboarding.period_length_label = Длительность менструации, дней
+onboarding.dont_know = Не знаю — поставьте стандартное
+onboarding.goals_title = Что важно именно вам?
+onboarding.goals_text = Выберите одну или несколько целей — так «Сегодня» будет показывать то, что откликается.
+onboarding.notifications_title = Напоминать о планах на сегодня?
+onboarding.notifications_text = Утреннее сообщение с планом дня. Все уведомления можно отключить в настройках.
+onboarding.notifications_yes = Да, напоминать
+onboarding.notifications_later = Позже
+onboarding.next = Далее
+onboarding.back = Назад
+onboarding.finish = Зайти в приложение
+goals[0].id = activity
+goals[0].label = Регулярная активность
+goals[1].id = nutrition
+goals[1].label = Сбалансированное питание
+goals[2].id = habits
+goals[2].label = Полезные привычки
+goals[3].id = cycle
+goals[3].label = Лучше понимать цикл
+goals[4].id = selfcare
+goals[4].label = Больше заботы о себе
+today_screen.greeting_morning = Доброе утро
+today_screen.greeting_day = Добрый день
+today_screen.greeting_evening = Добрый вечер
+today_screen.cycle_day_prefix = День
+today_screen.cycle_no_data_title = Настрой приложение под свой цикл
+today_screen.cycle_no_data_text = Календарь, фазы и рекомендации оживут, как только появятся данные цикла.
+today_screen.cycle_setup = Настроить цикл
+today_screen.next_period_prefix = До следующей менструации ориентировочно
+today_screen.days_word = дн.
+today_screen.more_cycle = Подробнее о цикле
+today_screen.phrase_title = Фраза дня
+today_screen.activity_title = Тренировка дня
+today_screen.activity_recommendation = Рекомендация по вашей фазе
+today_screen.start_workout = Начать тренировку
+today_screen.choose_other = Выбрать другую активность
+today_screen.nutrition_title = Питание сегодня
+today_screen.nutrition_cta = Посмотреть рекомендации
+today_screen.habit_title = Привычка дня
+today_screen.habit_done = Выполнено сегодня
+today_screen.habit_mark = Отметить выполненной
+today_screen.checkin_title = Как ты себя чувствуешь сегодня?
+today_screen.checkin_energy = Энергия (от 1 до 10)
+today_screen.checkin_mood = Настроение
+today_screen.checkin_saved = Сохранено
+today_screen.progress_title = Прогресс дня
+today_screen.progress_of = из
+today_screen.progress_items.workout = Тренировка
+today_screen.progress_items.checkin = Чек-ин
+today_screen.progress_items.habit = Привычка
+today_screen.loading = Собираю ваш день…
+today_screen.empty = Данных пока нет — загляните чуть позже.
+phrases.menstrual[0] = Эти дни — про мягкость к себе. Маленькие шаги тоже считаются.
+phrases.menstrual[1] = Тёплый чай, уют и никаких «надо» сверх меры — хороший план на сегодня.
+phrases.menstrual[2] = Твоё тело сейчас обновляется. Побудь рядом с ним, как с близкой подругой.
+phrases.menstrual[3] = Отдых — тоже забота о себе. Ты имеешь право замедлиться.
+phrases.menstrual[4] = Один мягкий шаг сегодня — это уже забота, а не лень.
+phrases.follicular[0] = Энергия возвращается — пробуй то, на что давно смотрела.
+phrases.follicular[1] = Отличный день, чтобы начать что-то новое. Тело готово учиться.
+phrases.follicular[2] = Лови волну: движение сегодня даётся легче, чем обычно.
+phrases.follicular[3] = Новая тренировка, новый рецепт, новая привычка — сейчас самое время.
+phrases.follicular[4] = Светлеет внутри и снаружи — пусть день будет на твоей стороне.
+phrases.ovulatory[0] = Сегодня силы на пике — используй их так, как нравится именно тебе.
+phrases.ovulatory[1] = Смелые планы встречают поддержку. Самое время для рекордов.
+phrases.ovulatory[2] = Энергия высокая, но отдых между подходами всё так же важен.
+phrases.ovulatory[3] = День, когда тело говорит «давай!». Послушай — и похвали себя.
+phrases.ovulatory[4] = Твоя сила сегодня на виду. Позволь себе её почувствовать.
+phrases.luteal[0] = Энергия плавно снижается — смести фокус на спокойную силу и восстановление.
+phrases.luteal[1] = Мягкие тренировки тоже засчитываются. Важна регулярность, а не интенсивность.
+phrases.luteal[2] = Замечаешь, что хочется сладкого? Это бывает у многих — просто отметь и выбери с удовольствием.
+phrases.luteal[3] = Гаси свет постепенно: меньше спешки, больше уюта.
+phrases.luteal[4] = Сон и отдых сейчас — твои главные союзники.
+nutrition_focus.menstrual = Хочется согреться: тёплые напитки и любимая еда. Это нормально, если аппетит чуть больше обычного.
+nutrition_focus.follicular = Энергии больше — добавь красок в тарелку и не пропускай завтрак: он задаёт ритм дню.
+nutrition_focus.ovulatory = Поддержи активные дни: яркий вкус и достаточно белка помогут чувствовать себя бодрой.
+nutrition_focus.luteal = Сделай режим еды понятнее: любимые продукты и регулярность вместо жёстких правил.
+nutrition_focus.premenstrual = Режим экономии энергии: ешь регулярно и не пропускай приёмы пищи — так проще держать ровный ритм. Сложные углеводы и любимые продукты помогают настроению.
+subperiods.luteal_stable.name = Лютеиновая фаза
+subperiods.luteal_stable.status = Энергия стабильна
+subperiods.luteal_stable.status_note = Поддержка энергии
+subperiods.luteal_stable.short = Энергия стабильна — хорошее время для спокойной силы, регулярного ритма и плановых дел.
+subperiods.premenstrual.name = Предменструальная неделя
+subperiods.premenstrual.status = Возможен спад энергии и эмоциональная чувствительность
+subperiods.premenstrual.status_note = Режим экономии энергии
+subperiods.premenstrual.short = Эти дни — про бережный режим: меньше спешки, больше восстановления. Это нормальный ритм цикла.
+subperiods.premenstrual.topics[0].title = Режим экономии энергии
+subperiods.premenstrual.topics[0].text = Сократи список дел до главного, перенеси то, что терпит. Мягкие тренировки и прогулки вместо интенсива — регулярность важнее нагрузки.
+subperiods.premenstrual.topics[1].title = Работа со стрессом
+subperiods.premenstrual.topics[1].text = Короткие паузы в течение дня, дыхательные практики и 10 минут без экрана перед сном помогают держать ровный эмоциональный фон.
+cycle_screen.title = Твой цикл
+cycle_screen.status_loading = Загружаю данные цикла…
+cycle_screen.no_data_title = Цикл пока не настроен
+cycle_screen.no_data_text = Заполни данные цикла — календарь и фазы оживут сразу после сохранения.
+cycle_screen.setup_button = Настроить цикл
+cycle_screen.current_status = Сегодня
+cycle_screen.symptoms_button = Отметить самочувствие
+cycle_screen.phases_title = Фазы цикла
+cycle_screen.edit_cycle = Изменить данные цикла
+cycle_screen.day_symptoms_title = Самочувствие в этот день
+cycle_screen.is_period = Месячные в этот день
+cycle_screen.period_intensity = Интенсивность
+cycle_screen.period_intensity_options[0] = скудные
+cycle_screen.period_intensity_options[1] = умеренные
+cycle_screen.period_intensity_options[2] = обильные
+cycle_screen.pain = Боль
+cycle_screen.pain_options[0] = нет
+cycle_screen.pain_options[1] = лёгкая
+cycle_screen.pain_options[2] = умеренная
+cycle_screen.pain_options[3] = сильная
+cycle_screen.sleep = Сон, часов
+cycle_screen.appetite = Аппетит
+cycle_screen.appetite_options[0] = слабый
+cycle_screen.appetite_options[1] = обычный
+cycle_screen.appetite_options[2] = повышенный
+cycle_screen.craving = Тяга к продуктам
+cycle_screen.craving_placeholder = например, сладкое, солёное…
+cycle_screen.bloating = Вздутие
+cycle_screen.other = Другие симптомы
+cycle_screen.other_placeholder = что ещё хотите отметить (необязательно)
+cycle_screen.save_symptoms = Сохранить отметку
+cycle_screen.saved = Сохранено
+cycle_screen.legend_has_symptoms = есть отметки
+activity_screen.subtitle = Двигайся в своём ритме — тренировка дня всегда рекомендация, а не предписание.
+activity_screen.today_card = Сегодня
+activity_screen.alt_title = Сегодня не хочется интенсивно?
+activity_screen.alt_text = Выбрать другую активность: прогулка, растяжка, йога, мобильность, восстановление.
+activity_screen.filters_category[0].id = all
+activity_screen.filters_category[0].label = Все
+activity_screen.filters_category[1].id = strength
+activity_screen.filters_category[1].label = Силовые
+activity_screen.filters_category[2].id = cardio
+activity_screen.filters_category[2].label = Кардио
+activity_screen.filters_category[3].id = yoga
+activity_screen.filters_category[3].label = Йога
+activity_screen.filters_category[4].id = stretching
+activity_screen.filters_category[4].label = Растяжка
+activity_screen.filters_category[5].id = recovery
+activity_screen.filters_category[5].label = Восстановление
+activity_screen.filters_duration[0].id = 
+activity_screen.filters_duration[0].label = Любая
+activity_screen.filters_duration[1].id = 10
+activity_screen.filters_duration[1].label = 10 мин
+activity_screen.filters_duration[2].id = 20
+activity_screen.filters_duration[2].label = 20 мин
+activity_screen.filters_duration[3].id = 30
+activity_screen.filters_duration[3].label = 30 мин
+activity_screen.filters_duration[4].id = 40
+activity_screen.filters_duration[4].label = 40+ мин
+activity_screen.filters_intensity[0].id = 
+activity_screen.filters_intensity[0].label = Любая
+activity_screen.filters_intensity[1].id = easy
+activity_screen.filters_intensity[1].label = Лёгкая
+activity_screen.filters_intensity[2].id = medium
+activity_screen.filters_intensity[2].label = Средняя
+activity_screen.filters_intensity[3].id = high
+activity_screen.filters_intensity[3].label = Высокая
+activity_screen.catalog_title = Библиотека тренировок
+activity_screen.no_equipment = без оборудования
+activity_screen.start = Начать
+activity_screen.completed = Выполнено
+activity_screen.my_week_title = Моя активность
+activity_screen.week_progress = На этой неделе
+activity_screen.week_goal = тренировки из 4
+activity_screen.regular_prefix = Ты занимаешься регулярно уже
+activity_screen.weeks_word = нед.
+activity_screen.month_title = Месяц
+activity_screen.workouts_word = тренировок
+activity_screen.minutes_word = минут
+activity_screen.plan_completion = выполнения плана
+activity_screen.all_stats = Вся статистика
+activity_screen.player_need_title = Что понадобится
+activity_screen.player_structure_title = Структура
+activity_screen.phase_warmup = Разминка
+activity_screen.phase_main = Основной блок
+activity_screen.phase_cooldown = Заминка
+activity_screen.player_start = Начать
+activity_screen.player_pause = Пауза
+activity_screen.player_resume = Продолжить
+activity_screen.player_skip = Пропустить
+activity_screen.player_next = Дальше
+activity_screen.video_soon = видео появится позже
+activity_screen.player_done_title = Готово!
+activity_screen.player_done_text = минут активности. Тело скажет спасибо.
+activity_screen.mark_done = Отметить выполненной
+activity_screen.state_start = Начать
+activity_screen.state_continue = Продолжить
+activity_screen.state_completed = Выполнено
+activity_screen.empty = Ничего не нашлось — попробуйте смягчить фильтры.
+activity_screen.videos.section_title = Видеотренировки фазы
+activity_screen.videos.section_subtitle = Мягкие видеопрактики для дней перед менструацией
+activity_screen.videos.categories[0].id = strength
+activity_screen.videos.categories[0].label = Силовая мягкая
+activity_screen.videos.categories[0].note = подходит для дней перед менструацией
+activity_screen.videos.categories[1].id = mobility
+activity_screen.videos.categories[1].label = Мобильность ТБС
+activity_screen.videos.categories[1].note = 
+activity_screen.videos.categories[2].id = stretch
+activity_screen.videos.categories[2].label = Растяжка
+activity_screen.videos.categories[2].note = 
+activity_screen.videos.categories[3].id = massage
+activity_screen.videos.categories[3].label = Самомассаж
+activity_screen.videos.categories[3].note = 
+activity_screen.videos.start = Начать
+activity_screen.videos.mark_done = Отметить выполненной
+activity_screen.videos.done = ✓ Выполнено
+activity_screen.videos.equipment_title = Что понадобится
+activity_screen.videos.no_equipment = Без оборудования
+nutrition_screen.subtitle = Единая экспертная система питания, мягко подстроенная под ваш цикл.
+nutrition_screen.disclaimer_title = Информационные рекомендации
+nutrition_screen.disclaimer_text = Рекомендации носят информационный характер и не заменяют консультацию врача или диетолога.
+nutrition_screen.cycle_card_more = Подробнее о питании в этой фазе
+nutrition_screen.no_cycle_setup = Настрой свой цикл
+nutrition_screen.focus_title = Фокус на сегодня
+nutrition_screen.plate_title = Сбалансированная и сытная тарелка
+nutrition_screen.plate_text = ½ овощи и фрукты · ¼ белок · ¼ углеводы · + немного полезных жиров.
+nutrition_screen.plate_cta = Сформировать тарелку
+nutrition_screen.notice_title = Обрати внимание на
+nutrition_screen.notice[0].emoji = 🥚
+nutrition_screen.notice[0].title = Белок
+nutrition_screen.notice[0].why = насыщает и поддерживает мышцы в тренировочные дни
+nutrition_screen.notice[1].emoji = 🥬
+nutrition_screen.notice[1].title = Клетчатка
+nutrition_screen.notice[1].why = овощи и зелень дают сытость и мягкость пищеварению
+nutrition_screen.notice[2].emoji = 🥑
+nutrition_screen.notice[2].title = Полезные жиры
+nutrition_screen.notice[2].why = делают тарелку сытной и вкусной — немного каждый день
+nutrition_screen.notice[3].emoji = 💧
+nutrition_screen.notice[3].title = Жидкость
+nutrition_screen.notice[3].why = вода рядом — простое правило, которое любит тело
+nutrition_screen.cook_title = Что приготовить сегодня?
+nutrition_screen.all_recipes = Все рецепты
+nutrition_screen.categories[0].id = breakfast
+nutrition_screen.categories[0].label = Завтрак
+nutrition_screen.categories[1].id = lunch
+nutrition_screen.categories[1].label = Обед
+nutrition_screen.categories[2].id = dinner
+nutrition_screen.categories[2].label = Ужин
+nutrition_screen.categories[3].id = snack
+nutrition_screen.categories[3].label = Перекус
+nutrition_screen.tags[0].id = быстро
+nutrition_screen.tags[0].label = Быстро
+nutrition_screen.tags[1].id = бюджетно
+nutrition_screen.tags[1].label = Бюджетно
+nutrition_screen.tags[2].id = минимум ингредиентов
+nutrition_screen.tags[2].label = Минимум ингредиентов
+nutrition_screen.tags[3].id = без готовки
+nutrition_screen.tags[3].label = Без готовки
+nutrition_screen.tags[4].id = meal prep
+nutrition_screen.tags[4].label = Meal prep
+nutrition_screen.minutes_word = минут
+nutrition_screen.ingredients_word = ингредиентов
+nutrition_screen.ingredients_title = Ингредиенты
+nutrition_screen.steps_title = Приготовление
+nutrition_screen.tracker_title = Питание сегодня
+nutrition_screen.tracker_hint = Просто отмечай приёмы пищи — без оценок «хорошо/плохо», только регулярность.
+nutrition_screen.regularity_title = Регулярность
+nutrition_screen.regularity_days = Питание отмечено
+nutrition_screen.regularity_weeks = недель регулярного питания
+nutrition_screen.new_day = Сегодня новый день. Продолжай с текущего приёма пищи.
+nutrition_screen.phases_nav_title = Питание в течение цикла
+nutrition_screen.plate_builder_title = Конструктор тарелки
+nutrition_screen.plate_builder_steps[0] = Белок
+nutrition_screen.plate_builder_steps[1] = Овощи и фрукты
+nutrition_screen.plate_builder_steps[2] = Углеводы
+nutrition_screen.plate_builder_steps[3] = Жиры
+nutrition_screen.plate_builder_hint = Выбери один или несколько элементов — можно добавить своё.
+nutrition_screen.plate_questions_title = Пара уточнений
+nutrition_screen.plate_goal_title = Какая цель?
+nutrition_screen.plate_goal_options[0].id = maintain
+nutrition_screen.plate_goal_options[0].label = Поддержание
+nutrition_screen.plate_goal_options[1].id = deficit
+nutrition_screen.plate_goal_options[1].label = Лёгкий дефицит
+nutrition_screen.plate_appetite_title = Аппетит сегодня
+nutrition_screen.plate_appetite_options[0].id = low
+nutrition_screen.plate_appetite_options[0].label = Слабый
+nutrition_screen.plate_appetite_options[1].id = normal
+nutrition_screen.plate_appetite_options[1].label = Обычный
+nutrition_screen.plate_appetite_options[2].id = high
+nutrition_screen.plate_appetite_options[2].label = Повышенный
+nutrition_screen.plate_phase_prefix = Твоя фаза сейчас
+nutrition_screen.plate_calc = Рассчитать тарелку
+nutrition_screen.plate_ready = Твоя тарелка готова
+nutrition_screen.plate_kcal_word = ккал
+nutrition_screen.plate_macros_title = Белки · Жиры · Углеводы
+nutrition_screen.plate_macro_names.p = Белки
+nutrition_screen.plate_macro_names.f = Жиры
+nutrition_screen.plate_macro_names.c = Углеводы
+nutrition_screen.plate_save = Сохранить тарелку
+nutrition_screen.plate_saved = Сохранено — найдёшь в Профиле
+nutrition_screen.plate_restart = Сформировать заново
+nutrition_screen.plate_repeat = Повторить набор
+nutrition_screen.plate_delete = Удалить
+nutrition_screen.plates_title = Сохранённые тарелки
+nutrition_screen.plates_empty = Пока пусто — собери тарелку в конструкторе и сохрани её.
+nutrition_screen.plate_other = Другое
+nutrition_screen.plate_other_label = Свой вариант
+nutrition_screen.plate_other_placeholder = Например, индейка или чечевица
+nutrition_screen.plate_config.phase_tips.menstrual = В эти дни хороши тёплые блюда и немного полезных жиров.
+nutrition_screen.plate_config.phase_tips.follicular = Энергии больше — добавь белка и ярких овощей.
+nutrition_screen.plate_config.phase_tips.ovulatory = Поддержи активные дни: белок и полезные жиры.
+nutrition_screen.plate_config.phase_tips.luteal = Добавь сложных углеводов — они помогают ровному настроению.
+nutrition_screen.plate_config.phase_tips.premenstrual = Режим экономии энергии: ешь регулярно, не пропуская приёмы пищи, и добавь любимых продуктов.
+nutrition_screen.plate_items.proteins[0].name = курица
+nutrition_screen.plate_items.proteins[1].name = рыба
+nutrition_screen.plate_items.proteins[2].name = яйца
+nutrition_screen.plate_items.proteins[3].name = творог
+nutrition_screen.plate_items.proteins[4].name = бобовые
+nutrition_screen.plate_items.proteins[5].name = тофу
+nutrition_screen.plate_items.veg[0].name = огурцы и томаты
+nutrition_screen.plate_items.veg[1].name = зелёные овощи
+nutrition_screen.plate_items.veg[2].name = капуста
+nutrition_screen.plate_items.veg[3].name = морковь
+nutrition_screen.plate_items.veg[4].name = зелень
+nutrition_screen.plate_items.veg[5].name = ягоды
+nutrition_screen.plate_items.carbs[0].name = гречка
+nutrition_screen.plate_items.carbs[1].name = рис
+nutrition_screen.plate_items.carbs[2].name = картофель
+nutrition_screen.plate_items.carbs[3].name = цельнозерновой хлеб
+nutrition_screen.plate_items.carbs[4].name = киноа
+nutrition_screen.plate_items.carbs[5].name = овсянка
+nutrition_screen.plate_items.fats[0].name = оливковое масло
+nutrition_screen.plate_items.fats[1].name = авокадо
+nutrition_screen.plate_items.fats[2].name = орехи
+nutrition_screen.plate_items.fats[3].name = семена
+nutrition_screen.plate_items.fats[4].name = сыр
+nutrition_screen.empty = Рецептов по этим фильтрам пока нет — попробуйте другие.
+nutrition_screen.plate_rule.title = Правило тарелки
+nutrition_screen.plate_rule.sub = Простой способ сбалансировать рацион
+nutrition_screen.plate_rule.veg_label = Овощи и зелень
+nutrition_screen.plate_rule.protein_label = Белок
+nutrition_screen.plate_rule.protein_sub = Рыба, мясо, яйца, бобовые
+nutrition_screen.plate_rule.carbs_label = Сложные углеводы
+nutrition_screen.plate_rule.carbs_sub = Крупы, цельнозерновой хлеб, киноа
+nutrition_screen.plate_rule.note = Такой подход помогает поддерживать уровень энергии, контролировать аппетит и чувствовать себя лучше.
+nutrition_screen.phases_food_title = Питание по фазам цикла
+nutrition_screen.phases_food_sub = В каждой фазе — свои потребности
+nutrition_screen.hand_rule.title = Правило ладошка — кулак
+nutrition_screen.hand_rule.sub = Простой и удобный способ собирать тарелку
+nutrition_screen.hand_rule.items[0].img = img/hand-palm.jpg
+nutrition_screen.hand_rule.items[0].caption = БЕЛКИ
+nutrition_screen.hand_rule.items[0].detail = Ладонь
+nutrition_screen.hand_rule.items[0].note = (рыба, мясо, яйца, бобовые)
+nutrition_screen.hand_rule.items[1].img = img/hand-fist.jpg
+nutrition_screen.hand_rule.items[1].caption = СЛОЖНЫЕ УГЛЕВОДЫ
+nutrition_screen.hand_rule.items[1].detail = Кулак
+nutrition_screen.hand_rule.items[1].note = (крупы, цельнозерновой хлеб, киноа)
+nutrition_screen.hand_rule.items[2].img = img/hand-palms.jpg
+nutrition_screen.hand_rule.items[2].caption = ОВОЩИ
+nutrition_screen.hand_rule.items[2].detail = 2 ладони
+nutrition_screen.hand_rule.items[2].note = (клетчатка)
+nutrition_screen.hand_rule.items[3].img = img/hand-thumb.jpg
+nutrition_screen.hand_rule.items[3].caption = ЖИРЫ
+nutrition_screen.hand_rule.items[3].detail = 1 большой палец
+nutrition_screen.hand_rule.items[3].note = (орехи, авокадо, масла)
+habits_screen.subtitle = Одна маленькая привычка за раз — постепенно и без давления.
+habits_screen.focus_title = Фокус недели
+habits_screen.focus_goal = цель — 5 дней
+habits_screen.focus_done = Отлично!
+habits_screen.focus_mark = Выполнила сегодня
+habits_screen.my_title = Мои привычки
+habits_screen.add_title = Добавить привычку
+habits_screen.add_category_title = Категория
+habits_screen.add_frequency_title = Как часто?
+habits_screen.frequencies[0].id = daily
+habits_screen.frequencies[0].label = Каждый день
+habits_screen.frequencies[1].id = 3_per_week
+habits_screen.frequencies[1].label = 3 раза в неделю
+habits_screen.frequencies[2].id = 5_per_week
+habits_screen.frequencies[2].label = 5 раз в неделю
+habits_screen.frequencies[3].id = weekdays
+habits_screen.frequencies[3].label = По будням
+habits_screen.add_reminder_title = Напоминание
+habits_screen.reminder_none = Не нужно
+habits_screen.add_button = Добавить привычку
+habits_screen.added = Привычка добавлена
+habits_screen.progress_title = Прогресс
+habits_screen.completions_word = выполнений
+habits_screen.regularity_word = регулярность
+habits_screen.most_stable = Самая стабильная привычка
+habits_screen.month_calendar = Месяц
+habits_screen.summary_active = Активных привычек
+habits_screen.summary_done = Выполнено
+habits_screen.summary_regularity = Регулярность
+habits_screen.main_phrase = Ты становишься регулярнее
+habits_screen.adapt_title = Мягкая адаптация
+habits_screen.adapt_text = Если чувствуешь снижение энергии, выбери более лёгкую цель на сегодня — это нормально.
+habits_screen.adapt_button = Адаптировать сегодня
+habits_screen.comfort_text = Сегодня не получилось — это нормально. Продолжи завтра.
+habits_screen.empty = Привычек пока нет — начните с одной. Одновременно лучше держать 1–3.
+habits_screen.trackers.subtitle = Маленькие шаги каждый день ⏎ для большого результата
+habits_screen.trackers.today_word = Сегодня
+habits_screen.trackers.more = Подробнее
+habits_screen.trackers.sleep_title = Сон
+habits_screen.trackers.sleep_goal = Цель: 7–9 часов
+habits_screen.trackers.sleep_value = 8 ч 15 мин
+habits_screen.trackers.sleep_sheet_title = Сколько часов сна сегодня?
+habits_screen.trackers.sleep_mode_hours = Часы
+habits_screen.trackers.sleep_mode_interval = Интервал
+habits_screen.trackers.sleep_hours_label = Часов сна
+habits_screen.trackers.sleep_from_label = От
+habits_screen.trackers.sleep_to_label = До
+habits_screen.trackers.sleep_save = Сохранить
+habits_screen.trackers.nutrition_title = Питание
+habits_screen.trackers.nutrition_progress = Сегодня: {done} из {total} приёмов
+habits_screen.trackers.meals[0] = Завтрак
+habits_screen.trackers.meals[1] = Обед
+habits_screen.trackers.meals[2] = Ужин
+habits_screen.trackers.vitamins_title = Витамины
+habits_screen.trackers.slots[0] = Утро
+habits_screen.trackers.slots[1] = День
+habits_screen.trackers.slots[2] = Вечер
+habits_screen.trackers.water_title = Вода
+habits_screen.trackers.water_goal = Цель: {goal} л
+habits_screen.trackers.litres = {value} л
+habits_screen.trackers.water_manual_placeholder = Объём, мл
+habits_screen.trackers.water_manual_placeholder_l = Объём, л
+habits_screen.trackers.steps_title = Шаги
+habits_screen.trackers.steps_goal = Цель: 10 000
+habits_screen.trackers.steps_manual_placeholder = Шагов сегодня
+habits_screen.trackers.steps_hint = Введи шаги вручную — или просто двигайся в своём ритме. Главное — регулярность, а не цифры.
+habits_screen.trackers.energy_title = Уровень энергии
+habits_screen.trackers.energy_question = Как вы себя чувствуете сегодня?
+habits_screen.trackers.energy_levels[0] = Очень низкий
+habits_screen.trackers.energy_levels[1] = Низкий
+habits_screen.trackers.energy_levels[2] = Средний
+habits_screen.trackers.energy_levels[3] = Высокий
+habits_screen.trackers.energy_levels[4] = Очень высокий
+profile_screen.title = Профиль
+profile_screen.edit_profile = Редактировать профиль
+profile_screen.name_label = Имя
+profile_screen.save = Сохранить
+profile_screen.saved = Сохранено
+profile_screen.my_cycle = Мой цикл
+profile_screen.cycle_length_word = длина цикла
+profile_screen.last_period_word = последняя менструация
+profile_screen.current_day_word = сегодня
+profile_screen.day_short = день
+profile_screen.edit_cycle = Изменить данные
+profile_screen.my_goals = Мои цели
+profile_screen.edit_goals = Изменить цели
+profile_screen.no_goals = Цели не выбраны — нажмите «Изменить цели».
+profile_screen.my_progress = Мой прогресс
+profile_screen.progress_month = за месяц
+profile_screen.stat_workouts = Тренировок
+profile_screen.stat_minutes = Минут активности
+profile_screen.stat_nutrition = Дней с отмеченным питанием
+profile_screen.stat_habits = Выполненные привычки
+profile_screen.stat_regularity = Общая регулярность
+profile_screen.detailed_stats = Подробная статистика
+profile_screen.regularity_card_title = Регулярность
+profile_screen.regularity_cheer = Ты становишься регулярнее
+profile_screen.subscription_title = Подписка
+profile_screen.plan_free = Бесплатный тариф
+profile_screen.premium_cta = Перейти на Premium
+profile_screen.premium_price = 490–790 ₽/месяц
+profile_screen.premium_text = Полная библиотека тренировок и рецептов, углублённая статистика, все уведомления. Оплата появится вместе с запуском.
+profile_screen.restore = Восстановить покупку
+profile_screen.settings_title = Настройки
+profile_screen.notifications_group = Напоминания в боте
+profile_screen.notify_items[0].id = plan
+profile_screen.notify_items[0].label = План дня (утро)
+profile_screen.notify_items[1].id = workout
+profile_screen.notify_items[1].label = Тренировка
+profile_screen.notify_items[2].id = habit
+profile_screen.notify_items[2].label = Привычки
+profile_screen.notify_items[3].id = vitamins
+profile_screen.notify_items[3].label = Витамины
+profile_screen.notify_items[4].id = checkin
+profile_screen.notify_items[4].label = Вечерний чек-ин
+profile_screen.notify_items[5].id = period
+profile_screen.notify_items[5].label = Начало менструации
+profile_screen.privacy_group = Приватность
+profile_screen.privacy_policy = Политика конфиденциальности
+profile_screen.data_management = Управление данными
+profile_screen.delete_account = Удалить аккаунт и данные
+profile_screen.delete_confirm = Удалить аккаунт безвозвратно? Все данные о цикле, самочувствии и прогрессе будут стёрты.
+profile_screen.delete_yes = Да, удалить всё
+profile_screen.delete_no = Оставить
+profile_screen.deleted = Аккаунт удалён. Будем рады видеть снова — данные начнут собираться заново.
+profile_screen.units_group = Единицы измерения
+profile_screen.units_weight = Вес
+profile_screen.unit_kg = кг
+profile_screen.unit_lb = фунты
+profile_screen.units_height = Рост
+profile_screen.unit_cm = см
+profile_screen.unit_in = дюймы
+profile_screen.help_title = Помощь
+profile_screen.faq_title = Частые вопросы
+profile_screen.faq[0].q = Как работает приложение?
+profile_screen.faq[0].a = Каждый день приложение показывает план «Сегодня»: тренировку дня, фокус питания и привычку. Всё выполняется в вашем темпе, отметки сохраняют прогресс.
+profile_screen.faq[1].q = Как считается цикл и фаза?
+profile_screen.faq[1].a = От даты последней менструации и средней длины цикла приложение ориентировочно определяет день цикла и фазу. Это прогноз, а не медицинский факт — данные всегда можно поправить вручную.
+profile_screen.faq[2].q = Как изменить данные цикла?
+profile_screen.faq[2].a = Профиль → Мой цикл → «Изменить данные». После сохранения прогноз пересчитывается автоматически.
+profile_screen.faq[3].q = Почему шаги вводятся вручную?
+profile_screen.faq[3].a = Telegram Mini App не имеет доступа к датчикам шагов телефона (Health Connect и HealthKit из webview недоступны), поэтому шаги вносятся вручную числом. Автоматический подсчёт появится только в будущем нативном приложении.
+profile_screen.faq[4].q = Как отменить подписку?
+profile_screen.faq[4].a = Подписка оформляется через Telegram. Отмена доступна в настройках подписки — действие подписки сохраняется до конца оплаченного периода.
+profile_screen.support = Связаться с поддержкой
+profile_screen.experts_title = Экспертная команда
+profile_screen.experts_text = Рекомендации разработаны совместно с тренером, нутрициологом и гинекологом. Контент носит wellness-характер и не заменяет консультацию врача.
+profile_screen.legal_title = Юридическая информация
+profile_screen.legal_terms = Пользовательское соглашение
+profile_screen.legal_privacy = Политика конфиденциальности
+profile_screen.legal_consent = Согласие на обработку данных
+profile_screen.version_prefix = Версия
+profile_screen.legal_docs.terms = Пользовательское соглашение (заглушка). Здесь будет текст соглашения перед публикацией приложения.
+profile_screen.legal_docs.privacy = Политика конфиденциальности (заглушка). Данные о цикле и самочувствии хранятся защищённо и удаляются по запросу пользователя.
+profile_screen.legal_docs.consent = Согласие на обработку персональных данных (заглушка). Текст будет размещён до запуска.
+profile_screen.cabinet_title = Личный кабинет
+profile_screen.cabinet_sub = Твое пространство заботы ⏎ о себе
+profile_screen.quote = Забота о себе — это не цель, а образ жизни
+profile_screen.stat_plan = Выполнение плана
+profile_screen.stat_rating = Рейтинг
+profile_screen.menu[0].icon = user
+profile_screen.menu[0].title = Мои данные
+profile_screen.menu[0].sub = Личные данные, цель, параметры
+profile_screen.menu[0].action = edit-profile
+profile_screen.menu[1].icon = calendar
+profile_screen.menu[1].title = Мой цикл
+profile_screen.menu[1].sub = Календарь, фазы и настройки
+profile_screen.menu[1].action = edit-cycle
+profile_screen.menu[2].icon = star
+profile_screen.menu[2].title = Мои предпочтения
+profile_screen.menu[2].sub = Любимые тренировки, продукты, напоминания
+profile_screen.menu[2].action = edit-goals
+profile_screen.menu[3].icon = fork
+profile_screen.menu[3].title = Сохранённые тарелки
+profile_screen.menu[3].sub = Твои тарелки с расчётом КБЖУ
+profile_screen.menu[3].action = plates
+profile_screen.menu[4].icon = shield
+profile_screen.menu[4].title = Безопасность
+profile_screen.menu[4].sub = Пароль, вход, конфиденциальность
+profile_screen.menu[4].action = settings
+profile_screen.menu[5].icon = bell
+profile_screen.menu[5].title = Уведомления
+profile_screen.menu[5].sub = Напоминания, оповещения, рассылки
+profile_screen.menu[5].action = reminders
+profile_screen.menu[6].icon = help
+profile_screen.menu[6].title = Помощь и поддержка
+profile_screen.menu[6].sub = FAQ, связь с нами
+profile_screen.menu[6].action = faq
+profile_screen.menu[7].icon = doc
+profile_screen.menu[7].title = О приложении
+profile_screen.menu[7].sub = Версия {version}
+profile_screen.menu[7].action = about
+profile_screen.logout = Выйти из аккаунта
+profile_screen.version = 0.2.0-demo
+common.loading = Загружаю…
+common.error_title = Что-то пошло не так
+common.retry = Попробовать ещё раз
+common.back = Назад
+common.day_names[0] = Пн
+common.day_names[1] = Вт
+common.day_names[2] = Ср
+common.day_names[3] = Чт
+common.day_names[4] = Пт
+common.day_names[5] = Сб
+common.day_names[6] = Вс
+common.intensity_labels.easy = лёгкая
+common.intensity_labels.medium = средняя
+common.intensity_labels.high = высокая
+common.category_labels.strength = Силовые
+common.category_labels.cardio = Кардио
+common.category_labels.yoga = Йога
+common.category_labels.stretching = Растяжка
+common.category_labels.recovery = Восстановление
+common.meal_labels.breakfast = Завтрак
+common.meal_labels.lunch = Обед
+common.meal_labels.dinner = Ужин
+common.meal_labels.snack = Перекус
+calendar.mark_period = Отметить начало месячных
+overdue.title = Цикл длиннее привычного
+overdue.short_text = Цикл сейчас длиннее привычного — такое бывает, и чаще всего это не о чём тревожиться
+overdue.intro = Небольшая задержка — частое явление. Вот что обычно влияет на длину цикла:
+overdue.reasons[0] = стресс и эмоциональное напряжение
+overdue.reasons[1] = смена обстановки, климат, перелёты и смена часовых поясов
+overdue.reasons[2] = медицинские причины — например, приём антибиотиков или других лекарств
+overdue.reasons[3] = интенсивные тренировки или резкое изменение веса
+overdue.reasons[4] = беременность — если она возможна, стоит сделать тест
+overdue.disclaimer = Это не диагноз и не медицинская консультация — только общая информация. Если задержка длится долго или появилось беспокойство, лучше обратиться к врачу.
+overdue.workout_title = Спокойное движение на эти дни
+overdue.button_started = Месячные начались
+overdue.button_edit = Изменить данные цикла
+overdue.day_text = Цикл длиннее привычного. Если месячные начались — отметь это, и календарь перекрасится заново.
+phases.menstrual.name = Менструальная фаза
+phases.menstrual.short_name = Менструация
+phases.menstrual.descriptor = восстановление
+phases.menstrual.tagline = Без интенсивной нагрузки
+phases.menstrual.status = Энергия восстанавливается
+phases.menstrual.status_note = Мягкий режим дня
+phases.menstrual.img = img/phase-menstrual.jpg
+phases.menstrual.food_focus = Больше железа, магния и тёплой пищи
+phases.menstrual.food_tip = Добавь полезных жиров и тёплых блюд
+phases.menstrual.days = Первые дни цикла
+phases.menstrual.color = #C97B4A
+phases.menstrual.short = Эти дни — про отдых и заботу о себе. Мягкое движение, тепло и меньше требований к себе.
+phases.menstrual.description = Эти дни — про отдых и заботу о себе. Тело обновляется, и это прекрасный повод замедлиться: меньше требований, больше нежности. Слушай себя и не гонись за результатом — мягкое движение тоже движение.
+phases.menstrual.movement = Мягкие растяжки, спокойная йога, дыхательные практики и неспешные прогулки. Никаких рывков и соревнований с собой — только комфортный темп.
+phases.menstrual.nutrition = Хочется согреться — добавь тёплые напитки и любимую еду. Это нормально, если аппетит чуть больше обычного: выбирай то, что правда радует, и не забывай про воду.
+phases.menstrual.recommendations[0] = Выдели 10–15 минут на расслабление перед сном — это приятный ритуал на эти дни.
+phases.menstrual.recommendations[1] = Не ругай себя за снижение энергии: отдых — часть заботы о себе.
+phases.menstrual.recommendations[2] = Тёплый душ и уютная одежда — маленькие помощники хорошего настроения.
+phases.menstrual.recommendations[3] = Отметь в календаре дни цикла — так приложение будет подсказывать точнее.
+phases.follicular.name = Фолликулярная фаза
+phases.follicular.short_name = Фолликулярная
+phases.follicular.descriptor = энергия
+phases.follicular.tagline = Для роста и развития
+phases.follicular.status = Энергия возвращается
+phases.follicular.status_note = Время новых начинаний
+phases.follicular.img = img/phase-follicular.jpg
+phases.follicular.food_focus = Лёгкие продукты, больше овощей и белка
+phases.follicular.food_tip = Добавь белка и свежих овощей
+phases.follicular.days = После месячных до овуляции
+phases.follicular.color = #A9B388
+phases.follicular.short = Энергия возвращается — отличное время для новых нагрузок и смелых планов.
+phases.follicular.description = Энергия постепенно возвращается — отличное время знакомиться с новыми нагрузками. Организм охотнее учится, а настроение чаще радует: лови эту волну и пробуй то, на что давно смотрела.
+phases.follicular.movement = Лёгкое кардио, танцы, силовые с собственным весом. Движения плавные и радостные — идеальный момент увеличить темп, если хочется.
+phases.follicular.nutrition = Энергии больше — можно баловать себя разнообразием. Добавь красок в тарелку и не пропускай завтрак: он задаёт ритм всему дню.
+phases.follicular.recommendations[0] = Пробуй новые тренировки — в эту фазу легче всего начинать.
+phases.follicular.recommendations[1] = Заведи маленькую цель на неделю и отмечай прогресс в календаре.
+phases.follicular.recommendations[2] = Гуляй больше обычного — свет и движение отлично поддерживают настроение.
+phases.follicular.recommendations[3] = Пей достаточно воды, особенно в дни тренировок.
+phases.ovulatory.name = Овуляторная фаза
+phases.ovulatory.short_name = Овуляция
+phases.ovulatory.descriptor = пик энергии
+phases.ovulatory.tagline = Для активности и социальных контактов
+phases.ovulatory.status = Энергия на пике
+phases.ovulatory.status_note = Время смелых планов
+phases.ovulatory.img = img/phase-ovulation.jpg
+phases.ovulatory.food_focus = Антиоксиданты, здоровые жиры и белок
+phases.ovulatory.food_tip = Добавь белка и полезных жиров
+phases.ovulatory.days = Около середины цикла
+phases.ovulatory.color = #B99470
+phases.ovulatory.short = Пик энергии! Самое время для самых смелых тренировок — лови момент.
+phases.ovulatory.description = Пик энергии! Сила и выносливость на подъёме, движения даются легко. Это время для самых смелых тренировок — используй его так, как нравится именно тебе.
+phases.ovulatory.movement = Интервальные тренировки, плиометрия, силовые на всё тело. Тело готово к нагрузкам — но комфорт всё так же важен, разминку не пропускай.
+phases.ovulatory.nutrition = Поддержи активные дни: еда с ярким вкусом и достаточно белка помогут чувствовать себя бодрой. И, конечно, вода рядом — простое и важное правило.
+phases.ovulatory.recommendations[0] = Самое время для рекордов — но разминка и заминка обязательны.
+phases.ovulatory.recommendations[1] = Следи за самочувствием: сильная энергия не отменяет отдыха между подходами.
+phases.ovulatory.recommendations[2] = Хорошая музыка в наушниках сделает тренировку ещё приятнее.
+phases.ovulatory.recommendations[3] = Похвали себя за каждую тренировку — ты отлично справляешься.
+phases.luteal.name = Лютеиновая фаза
+phases.luteal.short_name = Лютеиновая
+phases.luteal.descriptor = устойчивость
+phases.luteal.tagline = Для баланса и восстановления
+phases.luteal.img = img/phase-luteal.jpg
+phases.luteal.food_focus = Стабильный сахар, сложные углеводы и магний
+phases.luteal.food_tip = Добавь сложных углеводов
+phases.luteal.days = От овуляции до следующих месячных
+phases.luteal.color = #D9C4A3
+phases.luteal.short = Энергия плавно снижается — смести фокус на спокойную силу и восстановление.
+phases.luteal.description = Энергия плавно снижается, и это нормальный ритм цикла. Смести фокус на спокойную силу и восстановление: меньше интенсивности, больше внимания к себе и своим ощущениям.
+phases.luteal.movement = Пилатес, баланс, мягкая йога и спокойные силовые. Медленный темп и плавные переходы — именно то, что нужно сейчас.
+phases.luteal.nutrition = Замечаешь, что хочется сладкого? Это бывает у многих. Добавь в меню любимые продукты и режим еды понятнее — так проще держаться на волне комфорта.
+phases.luteal.recommendations[0] = Снижай интенсивность постепенно — как будто гасишь свет перед сном.
+phases.luteal.recommendations[1] = Отдых и сон в эти дни — твои главные союзники.
+phases.luteal.recommendations[2] = Мягкие тренировки тоже засчитываются: важна регулярность, а не интенсивность.
+phases.luteal.recommendations[3] = Подготовься к следующей фазе заранее — уют и забота сейчас пригодятся.
+gamification.level_card_title = Твой уровень
+gamification.care_day_title = Твой день заботы
+gamification.care_day_items.workout = Тренировка
+gamification.care_day_items.nutrition = Питание
+gamification.care_day_items.water = Вода
+gamification.care_day_items.habit = Привычка
+gamification.care_day_items.checkin = Чек-ин
+gamification.points_word = лепестков заботы
+gamification.levelup_title = Новый уровень!
+gamification.levelup_text = Ты перешла на уровень «{name}» Продолжай в своём темпе.
+gamification.levels_subtitle = Забота о себе — это путь, а не цель
+gamification.levels_points = Твои баллы
+gamification.achievements_subtitle = Маленькие шаги — большие перемены
+gamification.achievements_filters[0].id = all
+gamification.achievements_filters[0].label = Все
+gamification.achievements_filters[1].id = activity
+gamification.achievements_filters[1].label = Активность
+gamification.achievements_filters[2].id = nutrition
+gamification.achievements_filters[2].label = Питание
+gamification.achievements_filters[3].id = cycle
+gamification.achievements_filters[3].label = Цикл
+gamification.achievements_filters[4].id = other
+gamification.achievements_filters[4].label = Ещё
+gamification.next_achievement = Твоё следующее достижение
+gamification.left_word = осталось
+gamification.rewards_subtitle = Обменивай баллы на то, что радует
+gamification.your_points = Твои баллы
+gamification.how_to_earn = Как получать
+gamification.how_to_earn_text = Баллы «лепестки заботы» начисляются за заботу о себе: тренировка +30, питание (день полностью) +15, норма воды +10, привычка +10, чек-ин +5, а за полностью закрытый день — бонус +20.
+gamification.reward_filters[0].id = all
+gamification.reward_filters[0].label = Все
+gamification.reward_filters[1].id = полезное
+gamification.reward_filters[1].label = Полезное
+gamification.reward_filters[2].id = красота
+gamification.reward_filters[2].label = Красота
+gamification.reward_filters[3].id = скидки
+gamification.reward_filters[3].label = Скидки
+gamification.exchange = Обменять
+gamification.owned = Получено
+gamification.not_enough = Не хватает {N}
+gamification.reminders_subtitle = Забота о себе — в мелочах
+gamification.add_reminder = Добавить напоминание
+gamification.goal_row = Цель → изменить цель
+gamification.push_card_title = Ты справляешься!
+gamification.push_card_text = Каждый твой шаг — это забота о себе и своём будущем.
+gamification.continue = Продолжить
+wishes[0] = Ты делаешь достаточно. Поверь, этого хватает
+wishes[1] = Сегодня улыбнись себе в зеркале — ты прекрасна.
+wishes[2] = Позволь себе замедлиться: отдых тоже забота о себе.
+wishes[3] = Твоё тело — союзник. Побудь с ним на одной волне.
+wishes[4] = Маленький шаг сегодня — большая перемена завтра.
+wishes[5] = Будь к себе такой нежной, какой была бы к подруге.
+wishes[6] = Ты имеешь право на ошибки — они ничего не отнимают у тебя.
+wishes[7] = Пусть сегодняшний день принесёт тебе хотя бы одну маленькую радость.
+wishes[8] = Вода, воздух, движение — простые вещи, которые любят тебя.
+wishes[9] = Ты не обязана быть идеальной, чтобы быть замечательной.
+wishes[10] = Сделай сегодня что-то приятное только для себя.
+wishes[11] = Дыши глубже. Всё успеется, а ты — главное.
+wishes[12] = Твоя мягкость — это сила, а не слабость.
+wishes[13] = Пусть вечер сегодня будет тёплым и спокойным 🕯
+
+======================================================================
+ТРЕНИРОВКИ (источник: webapp/data/workouts.json)
+======================================================================
+
+--- #1 ---
+  title: Силовая с собственным весом
+  description: Спокойная силовая на все основные мышцы без снарядов. Подходит, когда хочется умеренной нагрузки и ощущения сильного тела.
+  equipment: коврик
+--- #2 ---
+  title: Спокойная сила
+  description: Медленная силовая в мягком темпе. Поддерживает тонус без лишнего напряжения — хороший выбор для тихих дней.
+  equipment: коврик
+--- #3 ---
+  title: Силовая на всё тело
+  description: Самая насыщенная тренировка недели: все группы мышц, динамика и ощущение силы. Лови момент — и не забудь про заминку.
+  equipment: коврик, лёгкие гантели
+--- #4 ---
+  title: Мягкая сила: медленные повторы
+  description: Короткая силовая в щадящем темпе. Немного тепла и ощущения опоры в тело — ровно столько, сколько хочется сегодня.
+  equipment: без оборудования
+--- #5 ---
+  title: Лёгкое кардио: энергия начала
+  description: Бодрящая, но дружелюбная кардио-тренировка без прыжков. Разгоняет кровь и настроение — отличный старт дня.
+  equipment: без оборудования
+--- #6 ---
+  title: Танцевальная разминка
+  description: Движение под любимую музыку без правильных шагов. Это не урок танцев — это радость, которая случается, когда тело движется.
+  equipment: без оборудования
+--- #7 ---
+  title: Интервалы дома
+  description: Интервальная тренировка для дней, когда энергия на пике. Короткие отрезки работы и отдыха — максимум ощущений за 25 минут.
+  equipment: без оборудования
+--- #8 ---
+  title: Ходьба на месте + руки
+  description: Десять минут мягкой активности, которые всегда получаются. Тело скажет спасибо, а день станет чуть светлее.
+  equipment: без оборудования
+--- #9 ---
+  title: Кардио без прыжков
+  description: Сердечный ритм вверх — суставы в покое. Вся динамика без ударов о пол: шаги, наклоны и работа руками.
+  equipment: без оборудования
+--- #10 ---
+  title: Нежная йога
+  description: Медленная практика с мягкими вытяжениями и паузами. Время, которое принадлежит только тебе.
+  equipment: коврик
+--- #11 ---
+  title: Мягкая йога перед сном
+  description: Практика для вечернего замедления: расслабляющие позы и длинные выдохи. Подготовь тело и мысли к отдыху.
+  equipment: коврик
+--- #12 ---
+  title: Йога-флоу на пробуждение
+  description: Плавная последовательность, которая мягко будит тело. Хороший способ встретить день с приятным внутренним огоньком.
+  equipment: коврик
+--- #13 ---
+  title: Силовая йога
+  description: Динамичная практика с удержаниями: сила и гибкость в одном флаконе. Для дней, когда тело просит большего.
+  equipment: коврик
+--- #14 ---
+  title: Нежная растяжка
+  description: Мягкое вытяжение для дней, когда хочется заботы, а не нагрузки. Пятнадцать минут тишины и внимания к себе.
+  equipment: коврик
+--- #15 ---
+  title: Растяжка всего тела
+  description: Классическая растяжка от шеи до стоп — подходит в любой день цикла и в любое настроение.
+  equipment: коврик
+--- #16 ---
+  title: Мобильность суставов
+  description: Десять минут внимания каждому суставу. Проверенный способ снять скованность после долгого сидения.
+  equipment: без оборудования
+--- #17 ---
+  title: Растяжка после рабочего дня
+  description: Разгрузка для спины, плеч и бёдер после часов за столом. Постепенно отпускает день, как застёжку-молнию.
+  equipment: коврик
+--- #18 ---
+  title: Дыхание и мягкое движение
+  description: Десять минут, чтобы перезагрузиться: дыхательные циклы и плавные движения. Минимум усилий — максимум воздуха.
+  equipment: без оборудования
+--- #19 ---
+  title: Расслабление перед сном
+  description: Практика на грани сна: расслабление по частям тела и самые удобные позы. Можно выполнять прямо в постели.
+  equipment: коврик
+--- #20 ---
+  title: Восстановление: тёплая растяжка и дыхание
+  description: Полчаса заботы: длинные растяжки, поддерживаемые позы и много тишины. Лучший подарок себе в чувствительные дни.
+  equipment: коврик
+
+======================================================================
+ВИДЕОТРЕНИРОВКИ (источник: webapp/data/videos.json)
+======================================================================
+
+--- #101 ---
+  title: Мобильность тазобедренных суставов и работа с диафрагмой
+  description: Мобильность тазобедренных суставов и работа с диафрагмой
+  equipment: Полусфера или 2 мяча по Франклину, эспандер-лента, мяч для МФР или 1 мяч по Франклину
+--- #102 ---
+  title: Мобильность ТБС, работа со стопами и расслабление таза
+  description: Мобильность ТБС, работа со стопами и расслабление таза
+  equipment: Носки, свернутые в клубок, или 1 мяч по Франклину (также подойдёт полусфера), плед или полотенце, эспандер-лента
+--- #103 ---
+  title: Мобильность ТБС, раскрытие таза, активная работа с мышцами кора
+  description: Мобильность ТБС, раскрытие таза, активная работа с мышцами кора
+  equipment: Мяч для пилатеса, 2 мяча по Франклину, эспандер-лента
+--- #104 ---
+  title: Мягкая работа с животом и осанка
+  description: Мягкая работа с животом и осанка
+  equipment: Эспандер-лента, мяч для пилатеса
+--- #105 ---
+  title: Мобильность грудного отдела, вытяжение позвоночника, дыхание
+  description: Мобильность грудного отдела, вытяжение позвоночника, дыхание
+  equipment: МФР-ролл, мяч для пилатеса, эспандер-лента
+--- #106 ---
+  title: Мышцы стоп и мышцы тазового дна, мобильность грудной клетки
+  description: Мышцы стоп и мышцы тазового дна, мобильность грудной клетки
+  equipment: МФР-ролл, мячи по Франклину
+--- #107 ---
+  title: Выравнивание осанки и укрепление мышц живота
+  description: Выравнивание осанки и укрепление мышц живота
+  equipment: Мяч для пилатеса, 2 мяча по Франклину
+--- #108 ---
+  title: Ягодицы: активация через стопы, работа с мышцами кора
+  description: Ягодицы: активация через стопы, работа с мышцами кора
+  equipment: Мяч для пилатеса, две полусферы, 2 мяча по Франклину
+--- #109 ---
+  title: Силовой комплекс на всё тело, включая глубокие мышцы
+  description: Силовой комплекс на всё тело, включая глубокие мышцы
+  equipment: МФР-ролл, мяч для пилатеса, эспандер-лента
+--- #110 ---
+  title: Тренировка для живота
+  description: Тренировка для живота
+  equipment: без оборудования
+--- #111 ---
+  title: Мягкая растяжка
+  description: Мягкая растяжка
+  equipment: без оборудования
+--- #112 ---
+  title: Самомассаж живота
+  description: Самомассаж живота
+  equipment: Махровое полотенце среднего размера
+
+======================================================================
+РЕЦЕПТЫ (источник: webapp/data/recipes.json)
+======================================================================
+
+--- #1 ---
+  title: Тёплая овсянка с ягодами
+  phase_note: Тёплая каша мягко согревает и даёт ровную энергию на утро — особенно приятно в дни менструации.
+  ingredients: овсянка 60 г
+  ingredients: молоко 150 мл
+  ingredients: замороженные ягоды 100 г
+  ingredients: мёд 1 ч. л.
+  ingredients: корица щепотка
+  steps: Залей овсянку молоком в кастрюльке и поставь на средний огонь.
+  steps: Вари 5–7 минут, помешивая, до мягкости.
+  steps: Добавь ягоды, дай им чуть разогреться в каше.
+  steps: Сними с огня, добавь мёд и корицу, перемешай.
+--- #2 ---
+  title: Яичница со шпинатом и помидорами
+  phase_note: Белок и зелень дают лёгкое питание без тяжести — хороший старт дня в любой фазе цикла.
+  ingredients: яйца 3 шт.
+  ingredients: шпинат свежий 50 г
+  ingredients: помидор 1 шт.
+  ingredients: оливковое масло 1 ст. л.
+  ingredients: соль по вкусу
+  steps: Разогрей масло на сковороде.
+  steps: Положи шпинат на минуту, чтобы он слегка увял.
+  steps: Добавь нарезанный помидор, готовь 2 минуты.
+  steps: Вбей яйца, посоли и жарь до нужной степени готовности.
+--- #3 ---
+  title: Творожная запеканка с яблоком
+  phase_note: Сытный завтрак с кальцием и белком, можно приготовить вечером и разогреть утром.
+  ingredients: творог 200 г
+  ingredients: яйцо 1 шт.
+  ingredients: яблоко 1 шт.
+  ingredients: манка 1 ст. л.
+  ingredients: сахар 1 ст. л.
+  ingredients: сметана 1 ст. л.
+  steps: Смешай творог, яйцо, сахар и манку до однородности.
+  steps: Натри яблоко и вмешай в тесто.
+  steps: Перелей в форму и сверху смажь сметаной.
+  steps: Запекай 25–30 минут при 180 °C до румяной корочки.
+--- #4 ---
+  title: Смузи-боул с бананом и арахисовой пастой
+  phase_note: Мягкий холодный завтрак, когда хочется чего-то простого и сладкого без лишних усилий.
+  ingredients: банан 1 шт.
+  ingredients: молоко 150 мл
+  ingredients: овсянка 2 ст. л.
+  ingredients: арахисовая паста 1 ст. л.
+  ingredients: ягоды для подачи 50 г
+  steps: Взбей банан, молоко и овсянку в блендере до гладкости.
+  steps: Перелей в миску.
+  steps: Сверху добавь ложку арахисовой пасты и ягоды.
+--- #5 ---
+  title: Куриная грудка с гречкой и овощами
+  phase_note: Полноценная тарелка с белком и сложными углеводами — ровная сытость без сонливости после еды.
+  ingredients: куриная грудка 200 г
+  ingredients: гречка 80 г
+  ingredients: кабачок 1 шт.
+  ingredients: морковь 1 шт.
+  ingredients: оливковое масло 1 ст. л.
+  ingredients: специи по вкусу
+  steps: Отвари гречку по инструкции на упаковке.
+  steps: Натри курицу специями и обжарь на масле по 5–6 минут с каждой стороны.
+  steps: Натри овощи и обжарь на той же сковороде 7–8 минут.
+  steps: Положи гречку, курицу и овощи в тарелку.
+--- #6 ---
+  title: Чечевичный суп с морковью и луком
+  phase_note: Тёплый согревающий суп с растительным белком и железом — уютная еда для дней, когда хочется тепла.
+  ingredients: красная чечевица 150 г
+  ingredients: морковь 1 шт.
+  ingredients: лук репчатый 1 шт.
+  ingredients: картофель 2 шт.
+  ingredients: растительное масло 1 ст. л.
+  ingredients: лавровый лист 1 шт.
+  steps: Нарежь лук и морковь, обжарь на масле 5 минут.
+  steps: Залей водой, добавь нарезанный картофель, доведи до кипения.
+  steps: Промой чечевицу, добавь в суп вместе с лавровым листом.
+  steps: Вари 20 минут до мягкости чечевицы, посоли по вкусу.
+--- #7 ---
+  title: Салат с тунцом, яйцом и зелёным горошком
+  phase_note: Лёгкий белковый салат, который не валит в сон — как раз к ощущению лёгкости в овуляторную фазу.
+  ingredients: консервированный тунец 1 банка
+  ingredients: яйца 2 шт.
+  ingredients: зелёный горошек 100 г
+  ingredients: огурец 1 шт.
+  ingredients: оливковое масло 1 ст. л.
+  ingredients: лимонный сок 1 ч. л.
+  steps: Отвари яйца вкрутую 9 минут, остуди и нарежь.
+  steps: Слей жидкость с тунца, разомни вилкой.
+  steps: Нарежь огурец, смешай с горошком, яйцом и тунцом.
+  steps: Заправь маслом с лимонным соком.
+--- #8 ---
+  title: Плов с курицей и морковью
+  phase_note: Сытное блюдо одной кастрюлей — хороший вариант приготовить сразу на два обеда.
+  ingredients: рис 150 г
+  ingredients: куриное бедро 2 шт.
+  ingredients: морковь 1 шт.
+  ingredients: лук репчатый 1 шт.
+  ingredients: растительное масло 2 ст. л.
+  ingredients: зира 1 ч. л.
+  steps: Обжарь курицу на масле до золотистой корочки.
+  steps: Добавь лук и морковь, жарь 5 минут.
+  steps: Засыпь промытый рис, залей водой вровень с рисом, добавь зиру.
+  steps: Туши под крышкой 20 минут на слабом огне, затем дай настояться 10 минут.
+--- #9 ---
+  title: Куриный суп с вермишелью
+  phase_note: Горячий домашний суп мягко согревает и легко идёт на вечер — уютный ужин для дней менструации.
+  ingredients: куриное филе 150 г
+  ingredients: вермишель 50 г
+  ingredients: морковь 1 шт.
+  ingredients: картофель 2 шт.
+  ingredients: лук репчатый 1 шт.
+  ingredients: зелень по вкусу
+  steps: Залей куриное филе водой, доведи до кипения и сними пену.
+  steps: Добавь нарезанный картофель, вари 10 минут.
+  steps: Положи нарезанные морковь и лук, вари ещё 5 минут.
+  steps: Засыпь вермишель, вари 5–7 минут до готовности.
+  steps: Посоли, добавь зелень и сними с огня.
+--- #10 ---
+  title: Запечённая горбуша с брокколи
+  phase_note: Лёгкий белковый ужин с рыбой — не тяжело на ночь, и омега-3 в составе — приятный бонус.
+  ingredients: филе горбуши 200 г
+  ingredients: брокколи 200 г
+  ingredients: лимон 2 дольки
+  ingredients: оливковое масло 1 ст. л.
+  ingredients: соль по вкусу
+  steps: Разогрей духовку до 200 °C.
+  steps: Сбрызни рыбу маслом, посоли, положи сверху дольки лимона.
+  steps: Выложи брокколи рядом, полей остатками масла.
+  steps: Запекай 15–18 минут до готовности рыбы.
+--- #11 ---
+  title: Овощное рагу с фасолью
+  phase_note: Тёплое овощное рагу с бобовыми — мягкий и согревающий ужин, который легко готовится на две порции.
+  ingredients: консервированная фасоль 200 г
+  ingredients: кабачок 1 шт.
+  ingredients: морковь 1 шт.
+  ingredients: лук репчатый 1 шт.
+  ingredients: томатная паста 1 ст. л.
+  ingredients: растительное масло 1 ст. л.
+  steps: Обжарь лук и морковь на масле 5 минут.
+  steps: Добавь нарезанный кабачок и томатную пасту, налей полстакана воды.
+  steps: Туши 10 минут под крышкой.
+  steps: Добавь фасоль, прогрей ещё 5 минут, посоли по вкусу.
+--- #12 ---
+  title: Творог с зеленью и цельнозерновым хлебом
+  phase_note: Лёгкий вечерний белок без готовки — когда не хочется долго стоять у плиты.
+  ingredients: творог 150 г
+  ingredients: укроп 1 пучок
+  ingredients: цельнозерновой хлеб 2 ломтика
+  ingredients: огурец 1 шт.
+  ingredients: оливковое масло 1 ч. л.
+  ingredients: соль по вкусу
+  steps: Смешай творог с рубленой зеленью, солью и маслом.
+  steps: Нарежь огурец и выложи рядом.
+  steps: Подавай с ломтиками хлеба.
+--- #13 ---
+  title: Горячий какао с молоком и корицей
+  phase_note: Тёплый сладкий перекус — маленький комфорт в дни, когда хочется заботы и чего-то сладкого.
+  ingredients: молоко 200 мл
+  ingredients: какао-порошок 1 ст. л.
+  ingredients: мёд 1 ч. л.
+  ingredients: корица щепотка
+  steps: Подогрей молоко в кастрюльке, не доводя до кипения.
+  steps: Венчиком взбей какао в горячем молоке.
+  steps: Добавь мёд и корицу, перемешай и налей в кружку.
+--- #14 ---
+  title: Яблоко с арахисовой пастой
+  phase_note: Хрустящий перекус с сочетанием сладкого и сытного — удобно взять с собой куда угодно.
+  ingredients: яблоко 1 шт.
+  ingredients: арахисовая паста 1 ст. л.
+  steps: Разрежь яблоко на дольки.
+  steps: Смажь каждую дольку пастой или подавай отдельно для макания.
+
+======================================================================
+БИБЛИОТЕКА ПРИВЫЧЕК (источник: webapp/data/habits.json)
+======================================================================
+
+--- #1 ---
+  title: Стакан воды утром
+  description: Начни день с приятного ритуала: стакан воды сразу после пробуждения помогает мягко включиться в новый день и позаботиться о себе в первую очередь.
+--- #2 ---
+  title: Овощи в один приём пищи
+  description: Добавь к одному из приёмов пищи любимые овощи — простой способ сделать тарелку ярче и порадовать себя вкусом и разнообразием.
+--- #3 ---
+  title: 10 минут прогулки после ужина
+  description: Неспешная прогулка после ужина — приятный способ подвигнуться и взять паузу для себя. Даже 10 минут на свежем воздухе уже ощущаются как маленький подарок.
+--- #4 ---
+  title: Разминка 5 минут
+  description: Пять минут лёгкой разминки — забота о теле, которое так много делает для тебя. Выбери удобный момент и двигайся так, как приятно именно тебе.
+--- #5 ---
+  title: Стабильное время отбоя
+  description: Когда отход ко сну происходит примерно в одно время, вечер становится спокойнее, а утро — добрее. Попробуй выбрать своё «идеальное» время и бережно придерживаться его.
+--- #6 ---
+  title: 7+ часов сна
+  description: Постарайся выделить себе достаточно времени на сон — это одна из самых приятных форм заботы о себе. Мягкий вечерний ритуал поможет легче переключиться на отдых.
+--- #7 ---
+  title: 10 минут без экрана перед сном
+  description: Попробуй завершить день без экрана: положи телефон за 10 минут до сна и отдай это время себе — книге, размышлениям или просто тишине.
+--- #8 ---
+  title: Растяжка перед сном
+  description: Несколько мягких движений перед сном помогают переключиться с дневных забот на отдых. Позволь себе расслабиться и настроиться на спокойный вечер.
+--- #9 ---
+  title: Тёплый душ и вечерний ритуал
+  description: Тёплый душ, любимый аромат, уютная музыка — собери свой вечерний ритуал, который подскажет: день завершён, а время для себя только начинается.
+--- #10 ---
+  title: Дневник благодарности на 3 строки
+  description: Три строки о хорошем, что случилось сегодня, — маленькая привычка, которая учит замечать приятное. Пиши как есть, без правил и оценок.

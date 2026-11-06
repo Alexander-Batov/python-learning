@@ -23,7 +23,8 @@ logger = logging.getLogger(__name__)
 DATA_DIR = Path(__file__).parent / "webapp" / "data"
 
 # Допустимые диапазоны (валидация — в api.py)
-ENERGY_MIN, ENERGY_MAX = 1, 5        # чек-ин: энергия/настроение, 5 уровней
+ENERGY_MIN, ENERGY_MAX = 1, 10       # чек-ин: энергия, шкала 1–10
+MOOD_MIN, MOOD_MAX = 1, 5            # чек-ин: настроение, 5 уровней
 FEELING_MIN, FEELING_MAX = 0, 2      # самочувствие: плохо/нормально/хорошо
 PAIN_MIN, PAIN_MAX = 0, 3            # боль: нет/лёгкая/умеренная/сильная
 APPETITE_MIN, APPETITE_MAX = 0, 2    # аппетит: слабый/обычный/повышенный

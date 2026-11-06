@@ -360,7 +360,7 @@ async def wellbeing_handler(request: web.Request) -> web.Response:
     try:
         energy = _parse_int(payload.get("energy"), db.ENERGY_MIN, db.ENERGY_MAX,
                             "energy")
-        mood = _parse_int(payload.get("mood"), db.ENERGY_MIN, db.ENERGY_MAX,
+        mood = _parse_int(payload.get("mood"), db.MOOD_MIN, db.MOOD_MAX,
                           "mood")
         feeling = _parse_int(payload.get("feeling"), db.FEELING_MIN,
                              db.FEELING_MAX, "feeling")
@@ -411,7 +411,7 @@ async def symptoms_handler(request: web.Request) -> web.Response:
                                         db.PERIOD_INTENSITY_MIN,
                                         db.PERIOD_INTENSITY_MAX),
             "pain": opt_int("pain", db.PAIN_MIN, db.PAIN_MAX),
-            "mood": opt_int("mood", db.ENERGY_MIN, db.ENERGY_MAX),
+            "mood": opt_int("mood", db.MOOD_MIN, db.MOOD_MAX),
             "energy": opt_int("energy", db.ENERGY_MIN, db.ENERGY_MAX),
             "sleep_hours": None,
             "appetite": opt_int("appetite", db.APPETITE_MIN, db.APPETITE_MAX),
