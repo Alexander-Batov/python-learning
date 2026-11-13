@@ -106,6 +106,16 @@ App.screens.activity = (() => {
         return { names, doneIdx };
     }
 
+    // Подпись под неделей: без ложных сравнений «лучше, чем вчера» —
+    // при нуле тренировок мотивируем начать, иначе хвалим по факту
+    function weekNote(count) {
+        if (count === 0) {
+            return 'Неделя только начинается — первая тренировка самая важная';
+        }
+        const word = count === 1 ? 'день' : (count >= 2 && count <= 4 ? 'дня' : 'дней');
+        return `Ты на верном пути! ${count} ${word} из 7 — уже отлично!`;
+    }
+
     function renderWeekCard() {
         if (!progressCache) return '';
         const { names, doneIdx } = weekStats();
@@ -136,7 +146,7 @@ App.screens.activity = (() => {
             </div>
             <div class="ac-week-note">
                 ${Components.icon('leaf', 16)}
-                <span>Ты на верном пути! ${doneIdx.length} ${doneIdx.length === 1 ? 'день' : 'дня'} из 7 — уже отлично!</span>
+                <span>${weekNote(doneIdx.length)}</span>
                 <span class="gf-chev">›</span>
             </div>
         </section>`;

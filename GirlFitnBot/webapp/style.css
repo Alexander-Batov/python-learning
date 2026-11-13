@@ -2579,8 +2579,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 
 .cy-legend {
     display: flex;
-    flex-wrap: nowrap;
-    gap: 4px 10px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 10px;
     margin-top: 14px;
 }
 
@@ -2957,7 +2958,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .nt-plate-pct {
     font-family: var(--font-head);
     font-weight: 600;
-    font-size: 18px;
+    font-size: 16px;
     line-height: 1.1;
     color: var(--text-primary);
 }
@@ -2970,18 +2971,12 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 }
 
 .nt-plate-img {
-    width: 148px;
-    height: 148px;
+    width: 140px;
+    height: 140px;
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
     cursor: pointer;
-}
-
-/* Яркий CTA конструктора тарелки (терракота, ≥48 px) */
-#nt-plate-cta {
-    width: 100%;
-    margin-top: 14px;
 }
 
 .nt-plate-right {
@@ -3004,6 +2999,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     font-size: 11px;
     line-height: 1.35;
     color: var(--text-secondary);
+    overflow-wrap: anywhere;
 }
 
 /* --- Подсказка-полоса --- */

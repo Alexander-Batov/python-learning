@@ -119,7 +119,6 @@ App.screens.nutrition = (() => {
                     </div>
                 </div>
             </div>
-            <button type="button" class="btn" id="nt-plate-cta">${esc(cta || 'Сформировать тарелку')}</button>
             <div class="nt-note">
                 <span class="nt-note-icon">${Components.icon('sun', 18)}</span>
                 <p>${esc(r.note)}</p>
@@ -182,11 +181,9 @@ App.screens.nutrition = (() => {
         const setup = el('nt-setup');
         if (setup) setup.addEventListener('click', () => App.screens.cycle.openEditSheet());
 
-        // Тарелка-иллюстрация и CTA открывают конструктор
+        // Тарелка-иллюстрация и CTA «Что поесть?» открывают конструктор
         const plateImg = el('nt-plate-img');
         if (plateImg) plateImg.addEventListener('click', () => openPlateBuilder());
-        const plateCta = el('nt-plate-cta');
-        if (plateCta) plateCta.addEventListener('click', () => openPlateBuilder());
         const whatCta = el('nt-what-cta');
         if (whatCta) whatCta.addEventListener('click', () => openPlateBuilder());
 
