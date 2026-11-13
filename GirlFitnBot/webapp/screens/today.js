@@ -170,26 +170,21 @@ App.screens.today = (() => {
 
     // --- 6. «За месяц» на «Сегодня» не дублируем: полная статистика — на вкладке «Активность» ---
 
-    // --- Шторка чек-ина (энергия 1–10 + настроение) ---
+    // --- Шторка чек-ина: уровень энергии 1–10 (по правке заказчицы;
+    // настроение «плохо/нормально/хорошо» убрано — позже заменим попапом
+    // с вопросами) ---
     function openCheckin() {
         const c = App.state.content.today_screen;
         const wb = App.state.today.wellbeing;
         const energyScale = ENERGY_SCALE.map((v) =>
             `<button class="checkin-num${wb && wb.energy === v ? ' active' : ''}"
                 data-scale="energy" data-value="${v}">${v}</button>`).join('');
-        const moodScale = MOOD_EMOJIS.map((e, i) =>
-            `<button class="checkin-emoji${wb && wb.mood === i + 1 ? ' active' : ''}"
-                data-scale="mood" data-value="${i + 1}">${e}</button>`).join('');
         openModal(`
             <h2>Как чувствует себя ваше тело?</h2>
             <p class="subtitle">Выберите, что вас сейчас беспокоит</p>
             <div>
                 <p class="checkin-label">${esc(c.checkin_energy)}</p>
                 <div class="checkin-row checkin-row-num">${energyScale}</div>
-            </div>
-            <div>
-                <p class="checkin-label">${esc(c.checkin_mood)}</p>
-                <div class="checkin-row">${moodScale}</div>
             </div>
             <p class="text-muted" id="t-checkin-saved">${wb ? esc(c.checkin_saved) : ''}</p>
         `);
@@ -208,7 +203,8 @@ App.screens.today = (() => {
         const payload = {
             date: todayISO(),
             energy: scale === 'energy' ? value : (current.energy || 5),
-            mood: scale === 'mood' ? value : (current.mood || 3),
+            // настроение/самочувствие убраны из UI — API пока шлём дефолты
+            mood: current.mood || 3,
             feeling: current.feeling == null ? 1 : current.feeling,
         };
         try {

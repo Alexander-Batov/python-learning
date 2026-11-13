@@ -67,9 +67,10 @@ App.screens.profile = (() => {
         const card = (cycle && cycle.cycle_day !== null && cycle.phase)
             ? Components.cycleCard(cycle.cycle_day, phase, { compact: true })
             : Components.cycleCard('—', 'Цикл не настроен', { compact: true });
-        // Аватар — фото из профиля Telegram; под ним буква имени как фолбэк
-        // (если фото нет или не загрузилось, img убирается и остаётся буква)
-        const photo = tgPhotoUrl();
+        // Аватар — фото из профиля Telegram; если его нет — локальный
+        // img/avatar.jpg; под ним буква имени как последний фолбэк
+        // (если фото не загрузилось, img убирается и остаётся буква)
+        const photo = tgPhotoUrl() || 'img/avatar.jpg';
         return `
         <section class="card-like pf-card">
             <div class="pf-avatar">

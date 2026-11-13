@@ -29,10 +29,23 @@ App.screens.nutrition = (() => {
         setHTML('nutrition-content', [
             renderHeader(),
             noCycle ? renderNoCycle() : renderPlateRule(),
+            renderWhatToEat(),
             renderPhasesFood(),
             renderHandRule(),
         ].join(''));
         bindAll();
+    }
+
+    // --- Блок «Что поесть?»: понимание вариантов, а не диета ---
+    function renderWhatToEat() {
+        const ns = App.state.content.nutrition_screen;
+        if (!ns.what_to_eat_title) return '';
+        return `
+        <section class="card nt-what">
+            <h3>${esc(ns.what_to_eat_title)}</h3>
+            <p class="subtitle">${esc(ns.what_to_eat_text)}</p>
+            <button type="button" class="btn btn-small" id="nt-what-cta">${esc(ns.what_to_eat_cta || 'Собрать тарелку →')}</button>
+        </section>`;
     }
 
     // --- Шапка: «Питание» + карточка цикла + подпись ---
@@ -79,19 +92,19 @@ App.screens.nutrition = (() => {
             <div class="nt-plate">
                 <div class="nt-plate-left">
                     <div class="nt-plate-txt">
-                        <span class="nt-plate-pct">50%</span>
+                        <span class="nt-plate-pct">½ тарелки</span>
                         <span class="nt-plate-cap">${esc(r.veg_label)}</span>
                     </div>
                     ${Components.icon('arrow', 24)}
                 </div>
-                <img class="nt-plate-img" src="img/plate.jpg" alt="Тарелка по правилу 50/25/25"
+                <img class="nt-plate-img" src="img/plate.jpg" alt="Тарелка по правилу ½/¼/¼"
                      role="button" tabindex="0" id="nt-plate-img"
                      aria-label="${esc(cta || 'Сформировать тарелку')}">
                 <div class="nt-plate-right">
                     <div class="nt-plate-item">
                         ${Components.icon('arrow', 24)}
                         <div class="nt-plate-txt">
-                            <span class="nt-plate-pct">25%</span>
+                            <span class="nt-plate-pct">¼ тарелки</span>
                             <span class="nt-plate-name">${esc(r.protein_label)}</span>
                             <span class="nt-plate-desc">${esc(r.protein_sub)}</span>
                         </div>
@@ -99,7 +112,7 @@ App.screens.nutrition = (() => {
                     <div class="nt-plate-item">
                         ${Components.icon('arrow', 24)}
                         <div class="nt-plate-txt">
-                            <span class="nt-plate-pct">25%</span>
+                            <span class="nt-plate-pct">¼ тарелки</span>
                             <span class="nt-plate-name">${esc(r.carbs_label)}</span>
                             <span class="nt-plate-desc">${esc(r.carbs_sub)}</span>
                         </div>
@@ -174,6 +187,8 @@ App.screens.nutrition = (() => {
         if (plateImg) plateImg.addEventListener('click', () => openPlateBuilder());
         const plateCta = el('nt-plate-cta');
         if (plateCta) plateCta.addEventListener('click', () => openPlateBuilder());
+        const whatCta = el('nt-what-cta');
+        if (whatCta) whatCta.addEventListener('click', () => openPlateBuilder());
 
         document.querySelectorAll('#nutrition-content .nt-phase-card').forEach((card) => {
             card.addEventListener('click', () => App.screens.cycle.openPhase(card.dataset.phase));
@@ -275,14 +290,18 @@ App.screens.nutrition = (() => {
             // возвращаем в чипы, свои варианты — в поле «Другое» категории
             restoreItems.forEach((it) => {
                 if (!BUILDER_KEYS.includes(it.cat)) return;
-                if (it.custom) {
-                    builder.other[it.cat] = it.name;
-                    builder.showOtherKey = it.cat;
-                } else {
+                // Имён из старых сохранённых тарелок может не быть в новом
+                // каталоге — отправляем их в «Другое», чтобы не потерять
+                if (!it.custom && catalogItem(it.cat, it.name)) {
                     builder.picked[it.cat] = builder.picked[it.cat] || [];
                     if (!builder.picked[it.cat].includes(it.name)) {
                         builder.picked[it.cat].push(it.name);
                     }
+                } else {
+                    builder.other[it.cat] = builder.other[it.cat]
+                        ? `${builder.other[it.cat]}, ${it.name}`
+                        : it.name;
+                    builder.showOtherKey = it.cat;
                 }
             });
             builder.step = BUILDER_KEYS.length; // сразу к уточняющим вопросам
@@ -375,7 +394,7 @@ App.screens.nutrition = (() => {
         }).join('');
         return `
         <svg class="pb-donut" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"
-             role="img" aria-label="${res.pct.p}% белки, ${res.pct.f}% жиры, ${res.pct.c}% углеводы">
+             role="img" aria-label="Белки ${res.p} г, жиры ${res.f} г, углеводы ${res.c} г">
             <circle cx="${cx}" cy="${cx}" r="${r}" fill="none"
                     stroke="var(--border)" stroke-width="14"/>
             ${arcs}
@@ -408,19 +427,19 @@ App.screens.nutrition = (() => {
     function plateResultHtml(res, phaseTip) {
         const c = App.state.content.nutrition_screen;
         const names = c.plate_macro_names || { p: 'Белки', f: 'Жиры', c: 'Углеводы' };
-        const row = (key, grams, pct, color) => `
+        const row = (key, grams, color) => `
             <div class="pb-macro">
                 <span class="pb-macro-dot" style="background:${color};"></span>
                 <span class="pb-macro-name">${esc(names[key])}</span>
-                <span class="pb-macro-val">${grams} г · ${pct}%</span>
+                <span class="pb-macro-val">${grams} г</span>
             </div>`;
         return `
             <div class="pb-result">
                 ${macroDonut(res, c.plate_kcal_word || 'ккал')}
                 <div class="pb-macros">
-                    ${row('p', res.p, res.pct.p, 'var(--olive)')}
-                    ${row('f', res.f, res.pct.f, 'var(--accent)')}
-                    ${row('c', res.c, res.pct.c, 'var(--accent-warm)')}
+                    ${row('p', res.p, 'var(--olive)')}
+                    ${row('f', res.f, 'var(--accent)')}
+                    ${row('c', res.c, 'var(--accent-warm)')}
                 </div>
             </div>
             <ul class="pb-items">
@@ -520,18 +539,34 @@ App.screens.nutrition = (() => {
         const custom = builder.other[key] || '';
         const showOther = builder.showOtherKey === key;
         const hasPick = pickedNames(key).length > 0;
+
+        // Группировка вариантов по подзаголовкам (поле group в plate_items)
+        const groups = [];
+        options.forEach((o) => {
+            const g = o.group || '';
+            let bucket = groups.find((x) => x.name === g);
+            if (!bucket) { bucket = { name: g, items: [] }; groups.push(bucket); }
+            bucket.items.push(o);
+        });
+        const chip = (o) => `
+                        <button class="option-chip${(builder.picked[key] || []).includes(o.name) ? ' active' : ''}"
+                            data-pick="${esc(o.name)}">${esc(o.name)}</button>`;
+        const groupsHtml = groups.map((g) => `
+                ${g.name ? `<p class="pb-group-label">${esc(g.name)}</p>` : ''}
+                <div class="option-row">${g.items.map(chip).join('')}</div>`).join('');
+
+        const catHint = (c.plate_items_hint || {})[key] || '';
         setHTML('plate-builder', `
             <section class="card">
                 <div class="builder-steps">${stepsBar}</div>
                 <h2>${stepLabels[builder.step]}</h2>
                 <p class="subtitle">${c.plate_builder_hint}</p>
+                ${groupsHtml}
                 <div class="option-row">
-                    ${options.map((o) => `
-                        <button class="option-chip${(builder.picked[key] || []).includes(o.name) ? ' active' : ''}"
-                            data-pick="${esc(o.name)}">${esc(o.name)}</button>`).join('')}
                     <button class="option-chip${showOther ? ' active' : ''}"
                         data-pick="__other">${esc(c.plate_other || 'Другое')}</button>
                 </div>
+                ${catHint ? `<p class="pb-cat-hint">${esc(catHint)}</p>` : ''}
                 ${showOther ? `
                 <label class="field">
                     <span class="field-label">${esc(c.plate_other_label || 'Свой вариант')}</span>
