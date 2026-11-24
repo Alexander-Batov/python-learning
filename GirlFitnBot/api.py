@@ -188,6 +188,7 @@ async def cycle_save_handler(request: web.Request) -> web.Response:
     except ValueError as exc:
         return _err(str(exc))
 
+    existing = db.get_user(user_id)
     cycle_start = str(payload.get("cycle_start", "")).strip()
     if cycle_start:
         try:
@@ -197,18 +198,23 @@ async def cycle_save_handler(request: web.Request) -> web.Response:
         if start > date.today():
             return _err("cycle_start в будущем")
     else:
-        row = db.get_user(user_id)
-        if row is None:
+        if existing is None:
             return _err("cycle_start обязателен для нового пользователя")
-        cycle_start = row["cycle_start"]
+        cycle_start = existing["cycle_start"]
 
-    try:
-        cycle_length = _parse_int(
-            payload.get("cycle_length") or DEFAULT_CYCLE_LENGTH,
-            MIN_CYCLE_LENGTH, MAX_CYCLE_LENGTH, "cycle_length",
-        )
-    except ValueError as exc:
-        return _err(str(exc))
+    # Непереданная длина цикла — не сброс на дефолт, а сохранение текущей:
+    # частичный payload (например, только имя) не должен затирать данные
+    raw_length = payload.get("cycle_length")
+    if raw_length in (None, ""):
+        cycle_length = (existing["cycle_length"] if existing is not None
+                        else DEFAULT_CYCLE_LENGTH)
+    else:
+        try:
+            cycle_length = _parse_int(
+                raw_length, MIN_CYCLE_LENGTH, MAX_CYCLE_LENGTH, "cycle_length",
+            )
+        except ValueError as exc:
+            return _err(str(exc))
 
     period_length = payload.get("period_length")
     if period_length in (None, ""):
@@ -233,6 +239,25 @@ async def cycle_save_handler(request: web.Request) -> web.Response:
         if not isinstance(notify, dict):
             return _err("notify должен быть объектом")
 
+    # Логируем смену данных цикла (старое → новое), чтобы отлавливать
+    # затирания: пропажа календаря у пользователей = первая подозреваемая
+    if existing is not None:
+        logger.info(
+            "POST /api/cycle tg_id=%s: cycle_start %s→%s, "
+            "cycle_length %s→%s, period_length %s→%s",
+            user_id,
+            existing["cycle_start"], cycle_start,
+            existing["cycle_length"], cycle_length,
+            existing["period_length"],
+            period_length if period_length is not None
+            else existing["period_length"],
+        )
+    else:
+        logger.info(
+            "POST /api/cycle tg_id=%s: новый пользователь, "
+            "cycle_start=%s, cycle_length=%s",
+            user_id, cycle_start, cycle_length,
+        )
     db.save_user(
         user_id, cycle_start, cycle_length,
         name=name, period_length=period_length,
@@ -1027,6 +1052,9 @@ async def user_patch_handler(request: web.Request) -> web.Response:
         return _err("invalid initData", 401)
     row = db.get_user(user_id)
     if row is None:
+        # PATCH не создаёт пользователя: восстановление цикла — через
+        # POST /api/cycle; лог нужен, чтобы видеть «не сохраняется» тестеров
+        logger.warning("PATCH /api/user для несуществующего tg_id=%s", user_id)
         return _err("user not found", 404)
     try:
         payload = await _json_payload(request)

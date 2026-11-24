@@ -57,7 +57,14 @@ def load_config() -> Config:
             f"PORT должен быть целым числом, получено: {port_raw!r}"
         ) from None
 
-    db_path = os.getenv("DB_PATH", "users.db").strip()
+    db_path = os.getenv("DB_PATH", "").strip()
+    if not db_path:
+        # На Amvera персистентный диск смонтирован в /data (см. amvera.yml).
+        # Без явного DB_PATH кладём БД туда: файл внутри контейнера
+        # не переживает пересоздание контейнера — пользователи теряют данные.
+        db_path = ("users.db" if os.name != "posix"
+                   else "/data/users.db" if os.path.isdir("/data")
+                   else "users.db")
 
     # DEBUG=1 включает подробные логи цепочки «онбординг → API → фронт»
     debug = os.getenv("DEBUG", "0").strip().lower() in ("1", "true", "yes")

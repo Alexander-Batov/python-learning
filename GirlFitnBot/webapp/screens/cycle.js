@@ -610,12 +610,17 @@ App.screens.cycle = (() => {
         el('m-save').addEventListener('click', async () => {
             const btn = el('m-save');
             btn.disabled = true;
+            // Пустые поля не отправляем вовсе: сервер сохранит текущие
+            // значения, а не сбросит их на дефолт
+            const payload = {};
+            const startVal = el('m-cycle-start').value;
+            const lengthVal = parseInt(el('m-cycle-length').value, 10);
+            const periodVal = parseInt(el('m-period-length').value, 10);
+            if (startVal) payload.cycle_start = startVal;
+            if (lengthVal) payload.cycle_length = lengthVal;
+            if (periodVal) payload.period_length = periodVal;
             try {
-                await apiPost('/api/cycle', {
-                    cycle_start: el('m-cycle-start').value,
-                    cycle_length: parseInt(el('m-cycle-length').value, 10) || 28,
-                    period_length: parseInt(el('m-period-length').value, 10) || 5,
-                });
+                await apiPost('/api/cycle', payload);
                 closeModal();
                 await refreshAll();
                 onShow();
