@@ -168,6 +168,9 @@ App.screens.cycle = (() => {
             : cycle.phase;
         const focus = (App.state.content.nutrition_focus || {})[focusKey] || '';
         const phaseName = sub ? sub.name : ((phases[cycle.phase] || {}).name || '');
+        // Описание тренировок текущей фазы — тексты заказчицы (phases.*.card)
+        const workoutsText = (((phases[cycle.phase] || {}).card) || {}).workouts
+            || 'Поддержи энергию, сон и спокойный ритм';
 
         const w = dailyWorkout;
         const intensityWord = { easy: 'лёгкая', medium: 'умеренная', high: 'высокая' };
@@ -228,7 +231,7 @@ App.screens.cycle = (() => {
                 <span class="cy-phase-pill">${esc(phaseName)}</span>
             </div>
             ${sub ? `<p class="cy-rec-sub">${esc(sub.status)}</p>` : ''}
-            <p class="cy-rec-sub">Поддержи энергию, сон и спокойный ритм</p>
+            <p class="cy-rec-sub">${esc(workoutsText)}</p>
             <div class="cy-rec-list">${cards.join('')}</div>
             ${topicsHtml}
         </section>`;

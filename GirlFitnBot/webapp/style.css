@@ -2975,6 +2975,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     color: var(--text-primary);
 }
 
+.nt-phase-now {
+    margin-top: 8px;
+}
+
 /* --- Правило тарелки --- */
 .nt-plate {
     display: flex;

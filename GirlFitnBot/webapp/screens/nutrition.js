@@ -133,6 +133,10 @@ App.screens.nutrition = (() => {
     function renderPhasesFood() {
         const ns = App.state.content.nutrition_screen;
         const phases = App.state.content.phases;
+        // Описание питания текущей фазы — тексты заказчицы (phases.*.card)
+        const cycle = App.state.cycle || {};
+        const phase = cycle.phase ? (phases[cycle.phase] || {}) : {};
+        const nutritionText = ((phase.card) || {}).nutrition || '';
         const cards = TODAY_PHASE_ORDER.map((key) => `
             <div class="nt-phase-card ${PHASE_TINT[key]}" data-phase="${key}" role="button" tabindex="0">
                 <span class="nt-phase-icon">${Components.icon(PHASE_ICON[key] || 'sun', 22)}</span>
@@ -144,6 +148,7 @@ App.screens.nutrition = (() => {
         <section>
             <h2 class="gf-section-title">${esc(ns.phases_food_title)}</h2>
             <p class="nt-plate-sub">${esc(ns.phases_food_sub)}</p>
+            ${nutritionText ? `<p class="nt-plate-sub nt-phase-now"><b>${esc(phase.name || '')}.</b> ${esc(nutritionText)}</p>` : ''}
             <div class="nt-phases-wrap">
                 <div class="nt-phases-scroll" id="nt-phases-scroll">
                     <div class="nt-phases-track">${cards}</div>

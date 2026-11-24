@@ -107,10 +107,10 @@ App.screens.today = (() => {
         const sub = (App.state.content.subperiods || {})[cycle.subperiod] || null;
         const phase = (App.state.content.phases || {})[cycle.phase] || {};
         const card = phase.card || {};
+        // На главном экране — только «О фазе» и «На сегодня»; тексты про
+        // тренировки и питание показываем на своих вкладках («Цикл» и «Питание»)
         const bullets = [
             ['О фазе', card.about],
-            ['Тренировки', card.workouts],
-            ['Питание', card.nutrition],
             ['На сегодня', card.today],
         ].filter(([, text]) => text);
         return `
