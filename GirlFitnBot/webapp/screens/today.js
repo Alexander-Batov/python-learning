@@ -100,13 +100,19 @@ App.screens.today = (() => {
     }
 
     // --- 2. Hero текущей фазы (терракотовый градиент, фото справа) ---
+    // Слоган и буллиты — тексты заказчицы из content.json (phases.*.slogan_short/card)
     function renderHero() {
         const cycle = App.state.cycle;
         const p = phaseInfo(cycle.phase);
-        // Лютеиновая фаза делится на два подпериода — статус берём из него
         const sub = (App.state.content.subperiods || {})[cycle.subperiod] || null;
-        const status = sub ? sub.status : (p.status || '');
-        const statusNote = sub ? sub.status_note : (p.status_note || '');
+        const phase = (App.state.content.phases || {})[cycle.phase] || {};
+        const card = phase.card || {};
+        const bullets = [
+            ['О фазе', card.about],
+            ['Тренировки', card.workouts],
+            ['Питание', card.nutrition],
+            ['На сегодня', card.today],
+        ].filter(([, text]) => text);
         return `
         <section class="td-hero" id="t-hero" role="button" tabindex="0"
                  aria-label="${esc(p.name || '')}">
@@ -114,10 +120,11 @@ App.screens.today = (() => {
             <div class="td-hero-inner">
                 <span class="td-hero-badge">Сегодня</span>
                 <h2 class="td-hero-title">${esc(sub ? sub.name : (p.name || ''))}</h2>
+                ${phase.slogan_short ? `<p class="td-hero-slogan">${esc(phase.slogan_short)}</p>` : ''}
                 <p class="td-hero-meta">С ${p.from} по ${p.to} день цикла · Вы в середине фазы</p>
-                <div class="td-hero-notes">
-                    <span class="td-hero-note">${Components.icon('zap', 16)} ${esc(status)}</span>
-                    <span class="td-hero-note">${Components.icon('clock', 16)} ${esc(statusNote)}</span>
+                <div class="td-hero-bullets">
+                    ${bullets.map(([label, text]) => `
+                        <p class="td-hero-bullet"><b>${esc(label)}.</b> ${esc(text)}</p>`).join('')}
                 </div>
                 ${Components.pillButton('Подробнее ›', 'hero')}
             </div>
@@ -125,10 +132,10 @@ App.screens.today = (() => {
     }
 
     // --- 3. Строка чек-ина (открывает шторку самочувствия) ---
+    // По правке заказчицы — без декоративной иконки-цветка
     function renderCheckinRow() {
         return `
         <button class="td-checkin" id="t-checkin">
-            <span class="td-checkin-icon">${Components.icon('lotus', 22)}</span>
             <span class="td-checkin-text">
                 <span class="td-checkin-title">Как чувствует себя ваше тело?</span>
                 <span class="td-checkin-sub">Выберите, что вас сейчас беспокоит</span>
@@ -140,6 +147,8 @@ App.screens.today = (() => {
     // --- 4. Фазы цикла на «Сегодня» не показываем: фазы живут на вкладке «Цикл» ---
 
     // --- 5. Активность недели ---
+    // По правке заказчицы — без декоративных кругов (иконка и шарики дней):
+    // только текст, числа и кликабельный блок
     function renderActivityBlock() {
         const labels = (App.state.content.common && App.state.content.common.day_names) || [];
         const week = currentWeekDates();
@@ -150,7 +159,6 @@ App.screens.today = (() => {
         return `
         <section class="td-activity" id="t-activity" role="button" tabindex="0" aria-label="Активность">
             <div class="td-activity-head">
-                <span class="td-activity-ic">${Components.icon('footprints', 22)}</span>
                 <span class="td-activity-titles">
                     <span class="td-activity-title">Активность</span>
                     <span class="td-activity-sub">Двигайтесь к своим целям</span>
@@ -162,7 +170,6 @@ App.screens.today = (() => {
                     <span class="td-count">${doneIdx.length} / 7</span>
                     <span class="td-count-cap">дней выполнено</span>
                 </div>
-                <div class="td-activity-week">${Components.weekDots(labels, doneIdx, labels)}</div>
             </div>
             <p class="td-activity-note">${doneIdx.length === 0
                 ? 'Начни с короткой тренировки — даже 10 минут считаются'

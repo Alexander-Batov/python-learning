@@ -351,7 +351,8 @@ App.screens.cycle = (() => {
         const header = el('phase-header');
         header.style.background = phase.color;
         header.innerHTML = `
-            <h1>${phase.name}</h1>
+            <h1>${esc(phase.name)}</h1>
+            ${phase.slogan_detail ? `<p class="phase-slogan">${esc(phase.slogan_detail)}</p>` : ''}
             <p class="phase-days">${phase.days}</p>`;
 
         const section = (title, body) => `<div class="card"><h3>${title}</h3>${body}</div>`;
@@ -374,15 +375,35 @@ App.screens.cycle = (() => {
             console.error('[api] workouts:', err);
         }
 
-        setHTML('phase-sections',
-            section('О фазе', `<p class="subtitle">${phase.description}</p>`)
-            + (key === 'luteal' ? lutealSubperiodsSection() : '')
-            + section('Движение', `<p class="subtitle">${phase.movement}</p>${workoutsHtml}`)
-            + section('Питание', `<p class="subtitle">${phase.nutrition}</p>`)
-            + `<div class="card"><h3>Рекомендации</h3>
-                <ul style="padding-left:18px;display:flex;flex-direction:column;gap:6px;">
-                    ${phase.recommendations.map((r) => `<li style="font-size:13.5px;">${r}</li>`).join('')}
-                </ul></div>`);
+        // Разделы — тексты заказчицы из content.json (phases.*.details),
+        // порядок как в её файле; «Видео» — текстовый анонс без плеера
+        if (Array.isArray(phase.details) && phase.details.length) {
+            setHTML('phase-sections', phase.details.map((d, i) => {
+                let html = '';
+                if (d.video) {
+                    html = `<div class="card phase-video">
+                        <h3>${esc(d.title)} <span class="phase-video-soon">Скоро</span></h3>
+                        <p class="subtitle">${esc(d.text)}</p>
+                    </div>`;
+                } else {
+                    const isTraining = d.title === 'Тренировки' || d.title === 'Активность';
+                    html = section(esc(d.title),
+                        `<p class="subtitle">${esc(d.text)}</p>${isTraining ? workoutsHtml : ''}`);
+                }
+                if (i === 0 && key === 'luteal') html += lutealSubperiodsSection();
+                return html;
+            }).join(''));
+        } else {
+            setHTML('phase-sections',
+                section('О фазе', `<p class="subtitle">${esc(phase.description || '')}</p>`)
+                + (key === 'luteal' ? lutealSubperiodsSection() : '')
+                + section('Движение', `<p class="subtitle">${esc(phase.movement || '')}</p>${workoutsHtml}`)
+                + section('Питание', `<p class="subtitle">${esc(phase.nutrition || '')}</p>`)
+                + `<div class="card"><h3>Рекомендации</h3>
+                    <ul style="padding-left:18px;display:flex;flex-direction:column;gap:6px;">
+                        ${(phase.recommendations || []).map((r) => `<li style="font-size:13.5px;">${esc(r)}</li>`).join('')}
+                    </ul></div>`);
+        }
 
         document.querySelectorAll('.workout-open').forEach((btn) => {
             btn.addEventListener('click', async () => {

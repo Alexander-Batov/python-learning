@@ -915,6 +915,34 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .phase-name { font-size: 16px; font-weight: 700; }
 .phase-days { font-size: 13px; opacity: 0.8; }
 
+.phase-slogan {
+    font-family: var(--font-head);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+    opacity: 0.9;
+}
+
+/* Анонс видеопрактики (плеера пока нет) */
+.phase-video {
+    background: var(--surface-warm, #f3ece2);
+}
+
+.phase-video-soon {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--olive);
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
 /* ============ Страница фазы ============ */
 .phase-header {
     border-radius: var(--radius-lg);
@@ -2184,6 +2212,34 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     display: flex;
     flex-wrap: wrap;
     gap: 8px 16px;
+}
+
+/* Слоган и буллиты фазы в hero (тексты заказчицы) */
+.td-hero-slogan {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.25;
+    color: var(--on-hero);
+    opacity: 0.95;
+    margin-top: -6px;
+}
+
+.td-hero-bullets {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.td-hero-bullet {
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--on-hero);
+    opacity: 0.95;
+}
+
+.td-hero-bullet b {
+    font-weight: 600;
 }
 
 .td-hero-note {
