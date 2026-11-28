@@ -100,19 +100,13 @@ App.screens.today = (() => {
     }
 
     // --- 2. Hero текущей фазы (терракотовый градиент, фото справа) ---
-    // Слоган и буллиты — тексты заказчицы из content.json (phases.*.slogan_short/card)
+    // Название фазы, слоган и дни — тексты заказчицы из content.json;
+    // «О фазе» и «На сегодня» живут только на экране «Подробнее о фазе»
     function renderHero() {
         const cycle = App.state.cycle;
         const p = phaseInfo(cycle.phase);
         const sub = (App.state.content.subperiods || {})[cycle.subperiod] || null;
         const phase = (App.state.content.phases || {})[cycle.phase] || {};
-        const card = phase.card || {};
-        // На главном экране — только «О фазе» и «На сегодня»; тексты про
-        // тренировки и питание показываем на своих вкладках («Цикл» и «Питание»)
-        const bullets = [
-            ['О фазе', card.about],
-            ['На сегодня', card.today],
-        ].filter(([, text]) => text);
         return `
         <section class="td-hero" id="t-hero" role="button" tabindex="0"
                  aria-label="${esc(p.name || '')}">
@@ -122,23 +116,18 @@ App.screens.today = (() => {
                 <h2 class="td-hero-title">${esc(sub ? sub.name : (p.name || ''))}</h2>
                 ${phase.slogan_short ? `<p class="td-hero-slogan">${esc(phase.slogan_short)}</p>` : ''}
                 <p class="td-hero-meta">С ${p.from} по ${p.to} день цикла · Вы в середине фазы</p>
-                <div class="td-hero-bullets">
-                    ${bullets.map(([label, text]) => `
-                        <p class="td-hero-bullet"><b>${esc(label)}.</b> ${esc(text)}</p>`).join('')}
-                </div>
                 ${Components.pillButton('Подробнее ›', 'hero')}
             </div>
         </section>`;
     }
 
     // --- 3. Строка чек-ина (открывает шторку самочувствия) ---
-    // По правке заказчицы — без декоративной иконки-цветка
+    // По правке заказчицы — без декоративной иконки-цветка и без подзаголовка
     function renderCheckinRow() {
         return `
         <button class="td-checkin" id="t-checkin">
             <span class="td-checkin-text">
                 <span class="td-checkin-title">Как чувствует себя ваше тело?</span>
-                <span class="td-checkin-sub">Выберите, что вас сейчас беспокоит</span>
             </span>
             <span class="gf-chev">›</span>
         </button>`;

@@ -87,6 +87,7 @@ App.screens.nutrition = (() => {
         <section>
             <div class="gf-section-header">
                 <h2 class="gf-section-title">${esc(r.title)}</h2>
+                ${r.detail_text ? '<button type="button" class="gf-pill gf-pill-secondary gf-pill-sm" id="nt-plate-more">Подробнее ›</button>' : ''}
             </div>
             <p class="nt-plate-sub">${esc(r.sub)}</p>
             <div class="nt-plate">
@@ -182,6 +183,18 @@ App.screens.nutrition = (() => {
         </section>`;
     }
 
+    // --- «Подробнее» о правиле тарелки: текст Гарвардской тарелки из контента ---
+    function openPlateRule() {
+        const r = App.state.content.nutrition_screen.plate_rule;
+        const lines = (r.detail_text || '').split('\n').map((s) => s.trim()).filter(Boolean);
+        openModal(`
+            <h2>${esc(r.detail_title || r.title)}</h2>
+            ${lines.map((line) => `<p class="subtitle">${esc(line)}</p>`).join('')}
+            <button class="btn" id="modal-ok">Понятно</button>
+        `);
+        el('modal-ok').addEventListener('click', closeModal);
+    }
+
     function bindAll() {
         const setup = el('nt-setup');
         if (setup) setup.addEventListener('click', () => App.screens.cycle.openEditSheet());
@@ -192,11 +205,16 @@ App.screens.nutrition = (() => {
         const whatCta = el('nt-what-cta');
         if (whatCta) whatCta.addEventListener('click', () => openPlateBuilder());
 
+        // «Подробнее» — модалка с правилом Гарвардской тарелки
+        const plateMore = el('nt-plate-more');
+        if (plateMore) plateMore.addEventListener('click', openPlateRule);
+
         document.querySelectorAll('#nutrition-content .nt-phase-card').forEach((card) => {
             card.addEventListener('click', () => App.screens.cycle.openPhase(card.dataset.phase));
         });
 
-        // Пагинационные точки следят за скроллом карточек фаз
+        // Пагинационные точки следят за скроллом карточек фаз;
+        // на десктопе карусель листается перетаскиванием мышью
         const scroller = el('nt-phases-scroll');
         if (scroller) {
             scroller.addEventListener('scroll', () => {
@@ -210,6 +228,41 @@ App.screens.nutrition = (() => {
                     d.classList.toggle('active', i === idx);
                 });
             }, { passive: true });
+
+            // Drag-to-scroll: только мышь, тач остаётся нативным скроллом
+            let dragging = false;
+            let dragStartX = 0;
+            let dragStartScroll = 0;
+            let dragged = false;
+            scroller.addEventListener('pointerdown', (e) => {
+                if (e.pointerType !== 'mouse') return;
+                dragging = true;
+                dragStartX = e.clientX;
+                dragStartScroll = scroller.scrollLeft;
+                dragged = false;
+                try { scroller.setPointerCapture(e.pointerId); } catch (err) { /* нет активного указателя */ }
+            });
+            scroller.addEventListener('pointermove', (e) => {
+                if (!dragging || e.pointerType !== 'mouse') return;
+                const dx = e.clientX - dragStartX;
+                if (Math.abs(dx) > 5) dragged = true;
+                if (dragged) scroller.scrollLeft = dragStartScroll - dx;
+            });
+            const endDrag = (e) => {
+                if (e.pointerType !== 'mouse') return;
+                dragging = false;
+                try { scroller.releasePointerCapture(e.pointerId); } catch (err) { /* захвата не было */ }
+            };
+            scroller.addEventListener('pointerup', endDrag);
+            scroller.addEventListener('pointercancel', endDrag);
+            // После перетаскивания клик не должен открывать страницу фазы
+            scroller.addEventListener('click', (e) => {
+                if (dragged) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    dragged = false;
+                }
+            }, true);
         }
 
         const handMore = el('nt-hand-more');

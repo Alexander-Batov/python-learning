@@ -2225,23 +2225,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     margin-top: -6px;
 }
 
-.td-hero-bullets {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.td-hero-bullet {
-    font-size: 12px;
-    line-height: 1.35;
-    color: var(--on-hero);
-    opacity: 0.95;
-}
-
-.td-hero-bullet b {
-    font-weight: 600;
-}
-
 .td-hero-note {
     display: inline-flex;
     align-items: center;
@@ -2256,6 +2239,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 
 /* --- Строка чек-ина --- */
 .td-checkin {
+    -webkit-appearance: none;
+    appearance: none;
     width: 100%;
     display: flex;
     align-items: center;
@@ -2266,6 +2251,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     padding: 14px 16px;
     cursor: pointer;
     text-align: left;
+    color: var(--text-primary);
 }
 
 .td-checkin-icon {
@@ -3034,6 +3020,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     width: 140px;
     height: 140px;
     border-radius: 50%;
+    border: 2px solid var(--accent);
     object-fit: cover;
     flex-shrink: 0;
     cursor: pointer;
@@ -3103,6 +3090,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
     overflow-x: auto;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    cursor: grab;
 }
 
 .nt-phases-scroll::-webkit-scrollbar { display: none; }

@@ -168,9 +168,6 @@ App.screens.cycle = (() => {
             : cycle.phase;
         const focus = (App.state.content.nutrition_focus || {})[focusKey] || '';
         const phaseName = sub ? sub.name : ((phases[cycle.phase] || {}).name || '');
-        // Описание тренировок текущей фазы — тексты заказчицы (phases.*.card)
-        const workoutsText = (((phases[cycle.phase] || {}).card) || {}).workouts
-            || 'Поддержи энергию, сон и спокойный ритм';
 
         const w = dailyWorkout;
         const intensityWord = { easy: 'лёгкая', medium: 'умеренная', high: 'высокая' };
@@ -203,15 +200,6 @@ App.screens.cycle = (() => {
             variant: 'secondary',
             action: 'nutrition',
         }));
-        cards.push(recCard({
-            img: 'img/rec-evening.jpg',
-            title: 'Вечернее восстановление',
-            meta: '10 минут без экрана перед сном',
-            note: 'Поможет поддержать расслабление и сон',
-            cta: 'Добавить привычку',
-            variant: 'secondary',
-            action: 'habits',
-        }));
 
         // Контент предменструальной недели: «Режим экономии энергии» и «Работа со стрессом»
         const topicsHtml = (sub && sub.topics)
@@ -231,7 +219,6 @@ App.screens.cycle = (() => {
                 <span class="cy-phase-pill">${esc(phaseName)}</span>
             </div>
             ${sub ? `<p class="cy-rec-sub">${esc(sub.status)}</p>` : ''}
-            <p class="cy-rec-sub">${esc(workoutsText)}</p>
             <div class="cy-rec-list">${cards.join('')}</div>
             ${topicsHtml}
         </section>`;
